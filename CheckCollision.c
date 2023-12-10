@@ -1,7 +1,4 @@
 #include "Tetris.h"
-#include "raylib.h"
-
-
 
 int CheckDownCollision(
     const int grid_pos_x,
@@ -52,4 +49,21 @@ int CheckRotateCollision(
     }
 
     return 0;
+}
+
+int GetLowestPiecePosition(
+    const int grid_pos_x,
+    const int grid_pos_y,
+    const int *tetronimo
+)
+{
+    int current_y = grid_pos_y;
+
+    while (!CheckDownCollision(grid_pos_x, current_y, tetronimo))
+    {
+        current_y++;
+    }
+    
+    return current_y;
+
 }

@@ -1,269 +1,95 @@
-#include "raylib.h"
-#include "stdlib.h"
-#include "string.h"
-#include "time.h"
 #include "Tetris.h"
 
-int stage[] = 
+
+#define WINDOW_HEIGHT 512
+#define WINDOW_WIDTH 512
+#define START_POS_Y 1
+#define START_MOVE_TILE_DOWN_TIMER 1.f
+#define START_MOVE_TIME_HOLD_TIMER .5f
+#define MOVE_HOLD_DOWN_DELAY .1f
+#define VISIBLE_PIECES 5
+#define START_OFFSET_X (WINDOW_WIDTH / 2) - (STAGE_WIDTH / 2 * TILE_SIZE);
+#define START_OFFSET_Y (WINDOW_WIDTH / 2) - (STAGE_HEIGHT / 2 * TILE_SIZE);
+
+struct game_loop
 {
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+    void(*begin_play)();
+    void(*tick)(const float delta_time);
+    void(*draw)();
+    void(*post_draw)();
+    int play_begin;
 };
 
-#pragma region //L PIECE
-const int tetronimo_L_0 [] =
-{
-     0,  0,
-     0, -1,
-     0,  1,
-     1,  1
-};
-const int tetronimo_L_90 [] =
-{
-     0,  0,
-     1,  0,
-    -1,  0,
-    -1,  1
-};
-const int tetronimo_L_180 [] =
-{
-     0,   0,
-     0,   1,
-     0,  -1,
-    -1,  -1
-};
-const int tetronimo_L_270 [] =
-{
-      0,  0,
-     -1,  0,
-      1,  0,
-      1, -1
-};
+
+
+#pragma region Variable Init
+const int windowWidth = WINDOW_WIDTH;
+const int windowHeight = WINDOW_HEIGHT;
+const int startOffSetX = START_OFFSET_X;
+const int startOffSetY = START_OFFSET_Y;
+const int startPosX = STAGE_WIDTH / 2;
+const int startPosY = 1;
+const float startMoveTileDownTimer = 1.f;
+const float startMoveTimeHoldTime = .5f;
+const float moveDownHoldDelay= .1f;
+const int visiblePieces = 5;
+
+int currentPosY;
+int currentPosX;
+
+float currentMoveTileDownTimer;
+float timeToMoveDown;
+float currentMoveTimeHoldTime;
+float timeToMoveDownHold;
+
+int currentTetrominoType;
+int currentTetrominoRotation;
+Color currentPieceColor;
+
+int holdTetrominoType;
+int alreadySwappedOnce;
+
+int closeGame;
+int spawnNewTetronimo;
+
+int score;
+char str_score[8];
+int lines_deleted;
+char str_lines_deleted[4];
+int tetris_scored;
+char str_tetris_scored[4];
+
+int level;
+int next_level_up;
+int visible_level;
+
+char str_visible_level[4];
+float speed;
+char str_speed[9];
+
+int nextPieces[VISIBLE_PIECES + 1];
+
+int preview_y;
+
+float speed;
+
+int lines_to_delete[4];
+
+float deleteEffectTimer = 1.f;
+float currentDeleteEffectTimer;
+struct game_loop current_game_loop;
+
+float multiplier = 1.0f;
+int pice_in_a_row = 0;
+
 #pragma endregion
 
-#pragma region //J PIECE
-int tetronimo_J_0 [] =
-{
-      0,  0,
-      0, -1,
-      0,  1,
-     -1,  1
-};
-int tetronimo_J_90 [] =
-{
-     0,  0,
-     1,  0,
-    -1,  0,
-     1,  1
-};
-int tetronimo_J_180 [] =
-{
-     0,   0,
-     0,   1,
-     0,  -1,
-     1,  -1
-};
-int tetronimo_J_270 [] =
-{
-      0,  0,
-     -1,  0,
-      1,  0,
-     -1, -1
-};
-#pragma endregion
-
-#pragma region //S PIECE
-int tetronimo_S_0 [] =
-{
-      0,  0,
-      0, -1,
-      1,  -1,
-      -1,  0
-};
-int tetronimo_S_90 [] =
-{
-      0,  0,
-      1,  0,
-      1,  1,
-     0,  -1
-};
-int tetronimo_S_180 [] =
-{
-      0,  0,
-      0,  1,
-      -1,  1,
-      1,  0
-};
-int tetronimo_S_270 [] =
-{
-      0,  0,
-      -1,  0,
-      -1,  -1,
-      0,  1
-};
-#pragma endregion
-
-#pragma region //Z PIECE
-int tetronimo_Z_0 [] =
-{
-      0,  0,
-      0, -1,
-      -1,  -1,
-      1,  0
-};
-int tetronimo_Z_90 [] =
-{
-      0,  0,
-     -1,  0,
-      -1,  1,
-     0,  -1
-};
-int tetronimo_Z_180 [] =
-{
-      0,  0,
-      0,  1,
-      1,  1,
-      -1,  0
-};
-int tetronimo_Z_270 [] =
-{
-      0,  0,
-      1,  0,
-      1,  -1,
-      0,  1
-};
-#pragma endregion
-
-#pragma region //O PIECE
-int tetronimo_O_0 [] =
-{
-    0, 0,
-    0, 1,
-    1, 0,
-    1, 1
-};
-int tetronimo_O_90 [] =
-{
-    0, 0,
-    0, 1,
-    1, 0,
-    1, 1
-};
-int tetronimo_O_180 [] =
-{
-    0, 0,
-    0, 1,
-    1, 0,
-    1, 1
-};
-int tetronimo_O_270 [] =
-{
-    0, 0,
-    0, 1,
-    1, 0,
-    1, 1
-};
-#pragma endregion
-
-#pragma region //T PIECE
-int tetronimo_T_0 [] =
-{
-    0,  0,
-    0, -1,
-    1,  0,
-    0,  1
-};
-int tetronimo_T_90 [] =
-{
-    0,  0,
-    -1, 0,
-    0,  -1,
-    1,  0
-};
-int tetronimo_T_180 [] =
-{
-    0,  0,
-    0, -1,
-    -1,  0,
-    0,  1
-};
-int tetronimo_T_270 [] =
-{
-    0,  0,
-    -1, 0,
-    0,  1,
-    1,  0
-};
-#pragma endregion
-
-#pragma region //I PIECE
-int tetronimo_I_0 [] =
-{
-    0,  0,
-    0, -2,
-    0, -1,
-    0,  1
-};
-int tetronimo_I_90 [] =
-{
-    0,  0,
-    -2, 0,
-    -1, 0,
-    1,  0
-};
-int tetronimo_I_180 [] =
-{
-    0,  0,
-    0, -2,
-    0, -1,
-    0,  1
-};
-int tetronimo_I_270 [] =
-{
-    0,  0,
-    -2, 0,
-    -1, 0,
-    1,  0
-};
-#pragma endregion
 
 typedef struct Str_Tetronimo Tetronimo;
 
 struct Str_Tetronimo{
-    int *pieces;
+    int shape;
     int rotation;
-};
-
-
-const int *tetromino_types[7][4] =
-{
-    {tetronimo_L_0, tetronimo_L_90, tetronimo_L_180, tetronimo_L_270},
-    {tetronimo_J_0, tetronimo_J_90, tetronimo_J_180, tetronimo_J_270},
-    {tetronimo_S_0, tetronimo_S_90, tetronimo_S_180, tetronimo_S_270},
-    {tetronimo_Z_0, tetronimo_Z_90, tetronimo_Z_180, tetronimo_Z_270},
-    {tetronimo_O_0, tetronimo_O_90, tetronimo_O_180, tetronimo_O_270},
-    {tetronimo_T_0, tetronimo_T_90, tetronimo_T_180, tetronimo_T_270},
-    {tetronimo_I_0, tetronimo_I_90, tetronimo_I_180, tetronimo_I_270}
 };
 
 void DrawTetromino(
@@ -287,19 +113,6 @@ void DrawTetromino(
 }
 
 
-const Color colorTypes[9] =
-{
-    {0,0,0,0},
-    {255,161,0,255},
-    {0,121,241,255},
-    {0,158,47,255},
-    {230,41,55,255},
-    {235,249,0,255},
-    {200,122,255,255},
-    {102,199,255,255},
-    {255,255,255,255}
-};
-
 void CopyAllLineAbove(int start_y)
 {
     for(int y = start_y; y> 0; y--)
@@ -320,8 +133,9 @@ void CopyAllLineAbove(int start_y)
     }
 }
 
-void DeleteLines()
+int DeleteLines()
 {
+    int deleted_lines = 0;
     for (int y = 0; y< STAGE_HEIGHT - 1;y++)
     {
         int checkLine = 1;
@@ -335,80 +149,110 @@ void DeleteLines()
                 break;
             }
         }
-
         if (checkLine)
         {
-            const int offset = y * STAGE_WIDTH + 1;
-            memset(stage + offset,0,(STAGE_WIDTH - 2) * sizeof(int));
-            CopyAllLineAbove(y);
+            //memset(stage + offset,0,(STAGE_WIDTH - 2) * sizeof(int));
+            lines_to_delete[deleted_lines] = y;
+
+            deleted_lines++;
         }
     }
+
+    return deleted_lines;
 }
 
-
-int main(int argc, char** argv)
+void FormatScore(char* score_array, int score)
 {
-    const int windowWidth = 512;
-    const int windowHeight = 512;
-    const int startOffSetX = ((windowWidth / 2) - (STAGE_WIDTH / 2 * TILE_SIZE));
-    const int startOffSetY = ((windowHeight / 2) - (STAGE_HEIGHT / 2 * TILE_SIZE));
-    const int startPosX = STAGE_WIDTH / 2;
-    const int startPosY = 0;
-    const float moveTileDownTimer = 1.f;
-    const int visiblePieces = 5;
+    char* score_char;
+    sprintf(score_char, "%d", score);
 
-    int currentPosY = startPosY;
-    int currentPosX = startPosX;
-    float timeToMoveDown = moveTileDownTimer;
+    int len = strlen(score_char);
+    char *address = &score_array[8 - len];
+    memset(score_array, '0', 9);
+    strcpy_s(address, sizeof(char) * len,score_char);
+
+}
+
+void UpdateStrings()
+{
+    printf("Score: %i", score);
+    const int tmp_score = score;
+    memset(str_score, '0', 8);
+    char score_char[8];
+    sprintf(score_char, "%i", tmp_score);
+    //printf("Score_2: %d ", score);
+    sprintf(&str_score[8 - strlen(score_char)], "%s", score_char);
+
+    sprintf(str_visible_level, "%i", visible_level);
+    sprintf(str_lines_deleted, "%i", lines_deleted);
+    sprintf(str_tetris_scored, "%i", tetris_scored);
+    sprintf(str_speed, "%f", speed);
+}
+
+void MainBeginPlay()
+{
+    currentPosY = startPosY;
+    currentPosX = startPosX;
+    currentMoveTileDownTimer = startMoveTileDownTimer;
+    timeToMoveDown = currentMoveTileDownTimer;
+    currentMoveTimeHoldTime = startMoveTimeHoldTime;
+    timeToMoveDownHold = currentMoveTileDownTimer;
 
     time_t unixTime;
     time(&unixTime);
 
     SetRandomSeed(unixTime);
-    int currentTetrominoType = GetRandomValue(0,6);
-    int currentTetrominoRotation = 0;
-    Color currentPieceColor = colorTypes[currentTetrominoType + 1];
+    currentTetrominoType = GetRandomValue(0,6);
+    currentPieceColor = colorTypes[currentTetrominoType + 1];
 
-    int holdTetrominoType = -1;
-    int alreadySwappedOnce = 0;
+    currentTetrominoRotation = 0;
 
-    int nextPieces[6] = 
+    holdTetrominoType = -1;
+    alreadySwappedOnce = 0;
+
+    closeGame = 0;
+    spawnNewTetronimo = 0;
+
+    score = 0;
+    lines_deleted = 0;
+    tetris_scored = 0;
+    level = 0;
+    next_level_up = 1000;
+    speed = .0f;
+
+    memset(str_lines_deleted,'0',4);
+    memset(str_tetris_scored,'0',4);
+    memset(str_visible_level,'0',4);
+
+    for(int i = 0; i <= VISIBLE_PIECES;i++)
     {
-        GetRandomValue(0,6),
-        GetRandomValue(0,6),
-        GetRandomValue(0,6),
-        GetRandomValue(0,6),
-        GetRandomValue(0,6),
-        GetRandomValue(0,6)
-    };
+        nextPieces[i] =GetRandomValue(0,6);
+    }
 
+    UpdateStrings();
+    // sprintf(str_level, "%i", level);
+    // sprintf(str_lines_deleted, "%i", lines_deleted);
+    // sprintf(str_tetris_scored, "%i", tetris_scored);
+    // sprintf(str_speed, "%f", speed);
 
-    InitWindow(windowWidth, windowHeight, "Title");
+    preview_y = 0;
+}
 
-    InitAudioDevice();
+void UpdateScore(int add)
+{
+    score += add * multiplier;
+}
 
-    Music bg_music = LoadMusicStream("bg_music.mp3");
-    PlayMusicStream(bg_music);
-
-
-    SetTargetFPS(60);
-
-    while(!WindowShouldClose())
-    {
-        if (!IsMusicStreamPlaying(bg_music))
-        {
-            StopMusicStream(bg_music);
-            PlayMusicStream(bg_music);
-        }
-
-        UpdateMusicStream(bg_music);
-
+void MainMenuTick(const float delta_time)
+{
         if (!alreadySwappedOnce && IsKeyPressed(KEY_SPACE))
         {
-            if (holdTetrominoType < 0)
+            alreadySwappedOnce = 1;
+            TetrisPlaySfx(SFX_HOLD);
+
+            if (holdTetrominoType == -1)
             {
                 holdTetrominoType = currentTetrominoType;
-                alreadySwappedOnce = 1;
 
                 currentPosY = startPosY;
                 currentPosX = startPosX;
@@ -428,8 +272,7 @@ int main(int argc, char** argv)
 
             else
             {
-                alreadySwappedOnce = 1;
-                for(int i = 6; i>0;i--)
+                for(int i = 5; i>0;i--)
                 {
                     nextPieces[i] = nextPieces[i-1];
                 }
@@ -449,7 +292,7 @@ int main(int argc, char** argv)
         }
 
 
-        timeToMoveDown -= GetFrameTime();
+        timeToMoveDown -= delta_time;
         if (IsKeyPressed(KEY_E))
         {
             int nextTetronimoRotation = currentTetrominoRotation == 3 ? 0 : currentTetrominoRotation + 1;
@@ -458,7 +301,10 @@ int main(int argc, char** argv)
                 currentPosY,
                 tetromino_types[currentTetrominoType][nextTetronimoRotation]
             ))
+            {
                 currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+            }
         }
         
         if (IsKeyPressed(KEY_Q))
@@ -468,8 +314,10 @@ int main(int argc, char** argv)
                 currentPosX,
                 currentPosY,
                 tetromino_types[currentTetrominoType][nextTetronimoRotation]
-            ))
+            )){
                 currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+            }
         }
 
         if (IsKeyPressed(KEY_RIGHT))
@@ -479,7 +327,10 @@ int main(int argc, char** argv)
                 currentPosY,
                 1,
                 tetromino_types[currentTetrominoType][currentTetrominoRotation]))
+                {
                 currentPosX++;
+                TetrisPlaySfx(SFX_MOVE);
+                }
         }
 
         if (IsKeyPressed(KEY_LEFT))
@@ -489,7 +340,10 @@ int main(int argc, char** argv)
                 currentPosY,
                 -1,
                 tetromino_types[currentTetrominoType][currentTetrominoRotation]))
-                currentPosX--;
+                {
+                    TetrisPlaySfx(SFX_MOVE);
+                    currentPosX--;
+                }
         }
 
         if(IsKeyPressed(KEY_UP))
@@ -497,8 +351,52 @@ int main(int argc, char** argv)
             while (!CheckDownCollision(currentPosX, currentPosY, tetromino_types[currentTetrominoType][currentTetrominoRotation]))
             {
                 currentPosY++;
-                timeToMoveDown = moveTileDownTimer;
+                timeToMoveDown = currentMoveTileDownTimer;
             }
+
+            TetrisPlaySfx(SFX_HARDLAND);
+            spawnNewTetronimo= 1;
+        }
+
+        if(IsKeyDown(KEY_DOWN))
+        {
+            timeToMoveDownHold -= delta_time;
+        }
+
+        if(IsKeyReleased(KEY_DOWN))
+        {
+            currentMoveTimeHoldTime = startMoveTimeHoldTime;
+        }
+
+        if(timeToMoveDown <= 0 || IsKeyPressed(KEY_DOWN) ||  timeToMoveDownHold <= 0)
+        {
+            if (timeToMoveDownHold <= 0)
+            {
+                currentMoveTimeHoldTime -= moveDownHoldDelay;
+
+                if (currentMoveTimeHoldTime < moveDownHoldDelay)
+                    currentMoveTimeHoldTime = moveDownHoldDelay;
+            }
+
+            if (!CheckDownCollision(currentPosX, currentPosY, tetromino_types[currentTetrominoType][currentTetrominoRotation]))
+            {
+                currentPosY++;
+                TetrisPlaySfx(SFX_MOVE);
+            }
+            else
+            {
+                spawnNewTetronimo = 1;
+                TetrisPlaySfx(SFX_LAND);
+            }
+            timeToMoveDown = currentMoveTileDownTimer;
+            timeToMoveDownHold = currentMoveTimeHoldTime;
+        }
+        
+        if(spawnNewTetronimo)
+        {
+            spawnNewTetronimo = 0;
+
+            int resetMultiplier = 1;
 
             const int *currTetronimo = tetromino_types[currentTetrominoType][currentTetrominoRotation];
             for (int i = 0; i < 8 ; i += 2){
@@ -506,11 +404,55 @@ int main(int argc, char** argv)
                 stage[cellToPlace] = currentTetrominoType + 1;
             }
 
-            DeleteLines();
+            const int current_line_deleted = DeleteLines();
+
+            if (current_line_deleted){
+
+                resetMultiplier = 0;
+
+                lines_deleted += current_line_deleted;
+
+                if (current_line_deleted == 4)
+                {
+                    tetris_scored += 1;
+                    UpdateScore(1000);
+                    TetrisPlaySfx(SFX_TETRIS);
+
+                    multiplier += .5f;
+                    // sprintf(str_tetris_scored, "%i", tetris_scored);
+                }
+                else
+                {
+
+                    UpdateScore(current_line_deleted * 100);
+                    TetrisPlaySfx(SFX_SINGLE);
+
+                    multiplier += .1f;
+                }
+
+                
+                visible_level = 1 + (score / 1000);
+
+                if (score >= next_level_up)
+                {
+                    next_level_up += 1000;
+                    TetrisPlaySfx(SFX_LVLUP);
+                }
+
+                speed = visible_level / 10.0f;
+                if (speed > 1.4f)
+                    speed = 1.4f;
+
+                currentMoveTileDownTimer = startMoveTileDownTimer - speed;
+
+                current_game_loop.tick = MainDeleteEffectTick;
+
+                UpdateStrings();
+            }
+
             alreadySwappedOnce = 0;
             currentPosY = startPosY;
             currentPosX = startPosX;
-            // SetRandomSeed(unixTime);
             
             currentTetrominoType = nextPieces[0];
 
@@ -518,55 +460,33 @@ int main(int argc, char** argv)
             {
                 nextPieces[i-1] = nextPieces[i];
             }
+            
+            if (CheckRotateCollision(
+                currentPosX,
+                currentPosY,
+                tetromino_types[currentTetrominoType][0]
+                ))
+                {
+                    closeGame = 1;
+                }
 
+            
             nextPieces[5] = GetRandomValue(0,6);
-
 
             currentTetrominoRotation = 0;
             currentPieceColor = colorTypes[currentTetrominoType + 1];
+
+            if(resetMultiplier)
+                multiplier = 1.0f;
+
+            printf("Multiplier: %f\n", multiplier);
         }
+}
 
-        if(timeToMoveDown <= 0 || IsKeyPressed(KEY_DOWN))
-        {
-            if (!CheckDownCollision(currentPosX, currentPosY, tetromino_types[currentTetrominoType][currentTetrominoRotation]))
-            {
-                currentPosY++;
-                timeToMoveDown = moveTileDownTimer;
-            }
-            else
-            {
-                const int *currTetronimo = tetromino_types[currentTetrominoType][currentTetrominoRotation];
-                for (int i = 0; i < 8 ; i += 2){
-                    const int cellToPlace = (currentPosY + currTetronimo[i + 1]) * STAGE_WIDTH + currentPosX + currTetronimo[i];
-                    stage[cellToPlace] = currentTetrominoType + 1;
-                }
+void EmptyDraw(){}
 
-                DeleteLines();
-                alreadySwappedOnce = 0;
-                currentPosY = startPosY;
-                currentPosX = startPosX;
-                // SetRandomSeed(unixTime);
-                
-                currentTetrominoType = nextPieces[0];
-
-                for(int i = 1; i<6;i++)
-                {
-                    nextPieces[i-1] = nextPieces[i];
-                }
-
-                nextPieces[5] = GetRandomValue(0,6);
-
-
-                currentTetrominoRotation = 0;
-                currentPieceColor = colorTypes[currentTetrominoType + 1];
-            }
-        }
-        
-
-
-
-        BeginDrawing();
-        ClearBackground(GRAY);
+void MainDraw()
+{
 
         #pragma region //Draw Scenario
         for(int y = 0; y < STAGE_HEIGHT; y++)
@@ -585,7 +505,9 @@ int main(int argc, char** argv)
         }
         #pragma endregion
             
-        //DrawRectangle(startPosX * TILE_SIZE + startOffSetX, currentPosY * TILE_SIZE + startOffSetY, TILE_SIZE, TILE_SIZE, GREEN);
+
+
+        //Current Piece
         DrawTetromino(
             startOffSetX,
             startOffSetY,
@@ -595,7 +517,24 @@ int main(int argc, char** argv)
             currentPieceColor
         );
 
-        if (holdTetrominoType> 0)
+        //Preview Piece
+        preview_y = GetLowestPiecePosition(currentPosX,currentPosY,tetromino_types[currentTetrominoType][currentTetrominoRotation]);
+        DrawTetromino(
+            startOffSetX,
+            startOffSetY,
+            currentPosX,
+            preview_y,
+            tetromino_types[currentTetrominoType][currentTetrominoRotation],
+            colorTypes[8]
+        );
+
+        #pragma region other_pieces
+
+        
+
+
+        //Hold Piece
+        if (holdTetrominoType>= 0)
         {
             DrawTetromino(
             64,
@@ -607,6 +546,7 @@ int main(int argc, char** argv)
         );
         }
 
+        //Next Pieces
         for(int i = 0; i < 5; i++)
         {
             int nextTetronimo = nextPieces[i];
@@ -618,10 +558,89 @@ int main(int argc, char** argv)
             tetromino_types[nextTetronimo][0],
             colorTypes[nextTetronimo + 1]);
         }
+
+        #pragma endregion
+
+        //TEXT and Test Text
+        //FormatScore(score_array, score);
+
+        DrawText(str_score, 32, 320, 20, WHITE);
+        DrawText(str_visible_level, 32, 360, 20, WHITE);
+        DrawText(str_lines_deleted, 32, 400, 20, WHITE);
+        DrawText(str_tetris_scored, 32, 440, 20, WHITE);
+        DrawText(str_speed, 32, 480, 20, WHITE);
+}
+
+void MainDeleteEffectTick(const float delta_time)
+{
+    currentDeleteEffectTimer -= delta_time;
+
+    if (currentDeleteEffectTimer <= 0)
+    {
+        for(int i = 0; i< 4; i++)
+        {
+            if (lines_to_delete[i] == -1)
+                continue;
+            
+            CopyAllLineAbove(lines_to_delete[i]);
+            lines_to_delete[i] = -1;
+            
+        }
+
+        currentDeleteEffectTimer = deleteEffectTimer;
+        current_game_loop.tick = MainMenuTick;
+    }
+
+    int deletedLineCounter = 0;
+    int squareToChange =  (10 - currentDeleteEffectTimer / .1);
+
+
+    while(lines_to_delete[deletedLineCounter] > 0 && deletedLineCounter < 4)
+    {
+        const int offset = lines_to_delete[deletedLineCounter] * STAGE_WIDTH + 1;
+        stage[offset + squareToChange] = 8;
+        deletedLineCounter++;
+    }
+}
+
+
+
+
+
+
+int main(int argc, char** argv)
+{
+    InitWindow(windowWidth, windowHeight, "Title");
+
+    TetrisLoadMusic();
+
+    SetTargetFPS(60);
+    current_game_loop.begin_play = MainBeginPlay;
+    current_game_loop.play_begin = 1;
+    current_game_loop.tick = MainMenuTick;
+    current_game_loop.draw = MainDraw;
+
+    current_game_loop.begin_play();
+
+    currentDeleteEffectTimer = 1.f;
+
+    lines_to_delete[0] = -1;
+    lines_to_delete[1] = -1;
+    lines_to_delete[2] = -1;
+    lines_to_delete[3] = -1;
+
+    while(!WindowShouldClose() && (closeGame == 0))
+    {
+        TetrisLoopBgMusic();
+        
+        current_game_loop.tick(GetFrameTime());
+        
+        BeginDrawing();
+        ClearBackground(GRAY);
+        current_game_loop.draw();
         EndDrawing();
     }
     
-    UnloadMusicStream(bg_music);   // Unload music stream buffers from RAM
-    CloseAudioDevice();         // Close audio device (music streaming is automatically stopped)
+    TetrisUnloadMusic();
     return 0;
 }
