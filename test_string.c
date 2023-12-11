@@ -13,10 +13,10 @@ int main(int argc, char** argv)
         memset(score_array, '0', 8);
         printf("Score_1: %d ", score);
         sprintf(score_char, "%i", score);
-        printf("Score_2: %d ", score);
+        //printf("Score_2: %d ", score);
         sprintf(&score_array[8 - strlen(score_char)], "%s", score_char);
-        printf("Score_3: %d ", score);
-        printf("%s | %d\n",score_array, score);
+        //printf("Score_3: %d ", score);
+        //printf("%s | %d\n",score_array, score);
         score = score * 10;
     }
 

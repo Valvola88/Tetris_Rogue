@@ -19,12 +19,23 @@
 #define SFX_HOLD 7
 #define SFX_LAST 8
 
+#define STAGE_DIMENSION 264
 
+extern int reset_stage[];
 extern int stage[];
 extern const Color colorTypes[10];
 extern const int *tetromino_types[7][4];
 
+struct game_loop
+{
+    void(*begin_play)();
+    void(*tick)(const float delta_time);
+    void(*draw)();
+    void(*post_draw)();
+    int play_begin;
+};
 
+extern struct game_loop current_game_loop;
 
 #pragma endregion
 
@@ -60,4 +71,29 @@ int GetLowestPiecePosition(
     const int grid_pos_y,
     const int *tetronimo
 );
+
+void DrawTextCentral(char* str, int x,  int y, int fonst_size, Color color);
+void FormatScore(char* score_array, int score);
+
+void EmptyBegin();
+void EmptyTick(const float delta_time);
+void EmptyDraw();
+
+void MainMenuBeginPlay();
+void MainMenuTick(const float delta_time);
+void MainMenuDraw();
+
+void MainDraw();
+void MainOverlayDraw();
+void MainBeginPlay();
+void MainTick(const float delta_time);
+void WaitForSpaceTick(const float delta_time);
+
+void EndMenuDraw();
+void EndMenuBeginPlay();
+void EndMenuTick(const float delta_time);
+
+
+
+
 #pragma endregion

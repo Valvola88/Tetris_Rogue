@@ -11,16 +11,9 @@
 #define START_OFFSET_X (WINDOW_WIDTH / 2) - (STAGE_WIDTH / 2 * TILE_SIZE);
 #define START_OFFSET_Y (WINDOW_WIDTH / 2) - (STAGE_HEIGHT / 2 * TILE_SIZE);
 
-struct game_loop
-{
-    void(*begin_play)();
-    void(*tick)(const float delta_time);
-    void(*draw)();
-    void(*post_draw)();
-    int play_begin;
-};
 
 
+void EmptyBegin(){}
 
 #pragma region Variable Init
 const int windowWidth = WINDOW_WIDTH;
@@ -58,7 +51,11 @@ int lines_deleted;
 char str_lines_deleted[4];
 int tetris_scored;
 char str_tetris_scored[4];
+int max_score = 0;
+char str_max_score[8];
 
+
+int stage[STAGE_DIMENSION];
 int level;
 int next_level_up;
 int visible_level;
@@ -111,6 +108,9 @@ void DrawTetromino(
         );
     }
 }
+
+
+void EmptyDraw(){}
 
 
 void CopyAllLineAbove(int start_y)
@@ -191,6 +191,9 @@ void UpdateStrings()
 
 void MainBeginPlay()
 {
+    current_game_loop.tick = MainTick;
+    current_game_loop.draw = MainDraw;
+
     currentPosY = startPosY;
     currentPosX = startPosX;
     currentMoveTileDownTimer = startMoveTileDownTimer;
@@ -229,13 +232,13 @@ void MainBeginPlay()
         nextPieces[i] =GetRandomValue(0,6);
     }
 
+    memcpy(stage, reset_stage, STAGE_DIMENSION * 4);
+
     UpdateStrings();
-    // sprintf(str_level, "%i", level);
-    // sprintf(str_lines_deleted, "%i", lines_deleted);
-    // sprintf(str_tetris_scored, "%i", tetris_scored);
-    // sprintf(str_speed, "%f", speed);
 
     preview_y = 0;
+    
+    current_game_loop.begin_play = EmptyBegin;
 }
 
 void UpdateScore(int add)
@@ -243,7 +246,7 @@ void UpdateScore(int add)
     score += add * multiplier;
 }
 
-void MainMenuTick(const float delta_time)
+void MainTick(const float delta_time)
 {
         if (!alreadySwappedOnce && IsKeyPressed(KEY_SPACE))
         {
@@ -467,7 +470,9 @@ void MainMenuTick(const float delta_time)
                 tetromino_types[currentTetrominoType][0]
                 ))
                 {
-                    closeGame = 1;
+                    current_game_loop.tick = WaitForSpaceTick;
+                    current_game_loop.post_draw = MainOverlayDraw;
+                    //closeGame = 1;
                 }
 
             
@@ -482,8 +487,6 @@ void MainMenuTick(const float delta_time)
             printf("Multiplier: %f\n", multiplier);
         }
 }
-
-void EmptyDraw(){}
 
 void MainDraw()
 {
@@ -588,7 +591,7 @@ void MainDeleteEffectTick(const float delta_time)
         }
 
         currentDeleteEffectTimer = deleteEffectTimer;
-        current_game_loop.tick = MainMenuTick;
+        current_game_loop.tick = MainTick;
     }
 
     int deletedLineCounter = 0;
@@ -603,10 +606,26 @@ void MainDeleteEffectTick(const float delta_time)
     }
 }
 
+void MainOverlayDraw()
+{
+    DrawRectangle(64,64,384, 128, WHITE);
 
+    DrawTextCentral("GAME OVER", 256,100,32,BLACK);
+    DrawTextCentral(str_score, 256,140,32,BLACK);
+}
 
-
-
+void WaitForSpaceTick(const float delta_time)
+{
+    if (IsKeyPressed(KEY_SPACE))
+    {
+        current_game_loop.begin_play = MainMenuBeginPlay;
+        current_game_loop.post_draw = EmptyDraw;
+        if (score > max_score)
+        {
+            max_score = score;
+        }
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -615,12 +634,8 @@ int main(int argc, char** argv)
     TetrisLoadMusic();
 
     SetTargetFPS(60);
-    current_game_loop.begin_play = MainBeginPlay;
-    current_game_loop.play_begin = 1;
-    current_game_loop.tick = MainMenuTick;
-    current_game_loop.draw = MainDraw;
-
-    current_game_loop.begin_play();
+    current_game_loop.begin_play = MainMenuBeginPlay;
+    
 
     currentDeleteEffectTimer = 1.f;
 
@@ -632,12 +647,15 @@ int main(int argc, char** argv)
     while(!WindowShouldClose() && (closeGame == 0))
     {
         TetrisLoopBgMusic();
-        
+        current_game_loop.begin_play();
+
+
         current_game_loop.tick(GetFrameTime());
         
         BeginDrawing();
         ClearBackground(GRAY);
         current_game_loop.draw();
+        current_game_loop.post_draw();
         EndDrawing();
     }
     

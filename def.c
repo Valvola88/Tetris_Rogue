@@ -1,7 +1,9 @@
 #include "Tetris.h"
 
+
+
 #pragma region Initial Values
-int stage[] = 
+int reset_stage[] = 
 {
     9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9,
     9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9,
@@ -269,3 +271,16 @@ const int *tetromino_types[7][4] =
     {tetronimo_T_0, tetronimo_T_90, tetronimo_T_180, tetronimo_T_270},
     {tetronimo_I_0, tetronimo_I_90, tetronimo_I_180, tetronimo_I_270}
 };
+
+
+
+//Functions
+void DrawTextCentral(char* str, int x,  int y, int font_size, Color color)
+{
+    const int len = strlen(str);
+    const int text_size = MeasureText(str,font_size);
+
+    int start_x = x - (text_size / 2);
+
+    DrawText(str, start_x, y, font_size, color);
+}
