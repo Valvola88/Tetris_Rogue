@@ -10,11 +10,20 @@ void MainMenuBeginPlay()
     current_game_loop.tick = MainMenuTick;
     current_game_loop.draw = MainMenuDraw;
     current_game_loop.post_draw = EmptyDraw;
+    
+    TetrisChangeMusic(MUSIC_MENU);
+    
+    current_game_loop.begin_play = EmptyBegin;
 
 }
 
 void MainMenuTick(const float delta_time)
 {
+    if (IsKeyPressed(KEY_D))
+    {
+        SpawnTile(250,250,0,RED);
+    }
+
     if (IsKeyPressed(KEY_SPACE))
     {
         current_game_loop.begin_play = MainBeginPlay;

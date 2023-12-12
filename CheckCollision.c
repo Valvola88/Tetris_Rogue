@@ -40,6 +40,7 @@ int CheckRotateCollision(
     const int *tetronimo
 )
 {
+    
     for (int i = 0; i < 8; i+= 2){
         const int currCoordX = grid_pos_x + tetronimo[i];
         const int currCoordY = (grid_pos_y + tetronimo[i + 1]) * STAGE_WIDTH;

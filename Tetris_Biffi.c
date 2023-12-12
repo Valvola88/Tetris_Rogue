@@ -1,18 +1,5 @@
 #include "Tetris.h"
 
-
-#define WINDOW_HEIGHT 512
-#define WINDOW_WIDTH 512
-#define START_POS_Y 1
-#define START_MOVE_TILE_DOWN_TIMER 1.f
-#define START_MOVE_TIME_HOLD_TIMER .5f
-#define MOVE_HOLD_DOWN_DELAY .1f
-#define VISIBLE_PIECES 5
-#define START_OFFSET_X (WINDOW_WIDTH / 2) - (STAGE_WIDTH / 2 * TILE_SIZE);
-#define START_OFFSET_Y (WINDOW_WIDTH / 2) - (STAGE_HEIGHT / 2 * TILE_SIZE);
-
-
-
 void EmptyBegin(){}
 
 #pragma region Variable Init
@@ -173,20 +160,21 @@ void FormatScore(char* score_array, int score)
 
 }
 
+char str_multiplier[9];
+char real_str_multiplier[4];
+
 void UpdateStrings()
 {
-    printf("Score: %i", score);
     const int tmp_score = score;
     memset(str_score, '0', 8);
     char score_char[8];
     sprintf(score_char, "%i", tmp_score);
-    //printf("Score_2: %d ", score);
     sprintf(&str_score[8 - strlen(score_char)], "%s", score_char);
 
-    sprintf(str_visible_level, "%i", visible_level);
+    //sprintf(str_visible_level, "%i", visible_level);
     sprintf(str_lines_deleted, "%i", lines_deleted);
     sprintf(str_tetris_scored, "%i", tetris_scored);
-    sprintf(str_speed, "%f", speed);
+
 }
 
 void MainBeginPlay()
@@ -222,10 +210,11 @@ void MainBeginPlay()
     level = 0;
     next_level_up = 1000;
     speed = .0f;
+    visible_level = 1;
 
     memset(str_lines_deleted,'0',4);
     memset(str_tetris_scored,'0',4);
-    memset(str_visible_level,'0',4);
+    //memset(str_visible_level,'0',4);
 
     for(int i = 0; i <= VISIBLE_PIECES;i++)
     {
@@ -237,13 +226,137 @@ void MainBeginPlay()
     UpdateStrings();
 
     preview_y = 0;
-    
+
+    TetrisChangeMusic(MUSIC_MAIN);
+
+    //MULTIPLIER
+    sprintf(str_multiplier, "%f", multiplier);
+    memcpy(real_str_multiplier,str_multiplier,3);
+
     current_game_loop.begin_play = EmptyBegin;
 }
 
 void UpdateScore(int add)
 {
     score += add * multiplier;
+}
+
+void TestWallKickRotateLeft(const int nextTetronimoRotation)
+{
+    int test_wall_kick;
+    
+    switch (currentTetrominoRotation)
+    {
+    case 0: test_wall_kick = WALLKICK_0_TO_270;
+        break;
+    
+    case 1: test_wall_kick = WALLKICK_90_TO_0;
+        break;
+        
+    case 2: test_wall_kick = WALLKICK_180_TO_90;
+        break;
+        
+    case 3: test_wall_kick = WALLKICK_270_TO_180;
+        break;
+    }
+
+    int i = 0;
+    while (i < 8)
+    {
+        if (currentTetrominoType != TETRONIMO_I)
+        {
+            if (!CheckRotateCollision(
+                currentPosX + wall_kick_offsets[test_wall_kick][i],
+                currentPosY + wall_kick_offsets[test_wall_kick][i+ 1],
+                tetromino_types[currentTetrominoType][nextTetronimoRotation]
+            ))
+            {
+                currentPosX += wall_kick_offsets[test_wall_kick][i];
+                currentPosY += wall_kick_offsets[test_wall_kick][i + 1];
+                currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }
+        }
+        else
+        {
+            printf("I");
+
+             if (!CheckRotateCollision(
+                currentPosX + wall_kick_I_offsets[test_wall_kick][i],
+                currentPosY + wall_kick_I_offsets[test_wall_kick][i+ 1],
+                tetromino_types[currentTetrominoType][nextTetronimoRotation]
+            ))
+            {
+                currentPosX += wall_kick_I_offsets[test_wall_kick][i];
+                currentPosY += wall_kick_I_offsets[test_wall_kick][i + 1];
+                currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }           
+        }
+        i+= 2;
+    }
+    return;  
+}
+
+void TestWallKickRotateRight(const int nextTetronimoRotation)
+{
+    int test_wall_kick;
+    
+    switch (currentTetrominoRotation)
+    {
+    case 0: test_wall_kick = WALLKICK_0_TO_90;
+        break;
+    
+    case 1: test_wall_kick = WALLKICK_90_TO_180;
+        break;
+        
+    case 2: test_wall_kick = WALLKICK_180_TO_270;
+        break;
+        
+    case 3: test_wall_kick = WALLKICK_270_TO_0;
+        break;
+    }
+
+    int i = 0;
+    while (i < 8)
+    {
+        if (currentTetrominoType != TETRONIMO_I)
+        {
+            if (!CheckRotateCollision(
+                currentPosX + wall_kick_offsets[test_wall_kick][i],
+                currentPosY + wall_kick_offsets[test_wall_kick][i+ 1],
+                tetromino_types[currentTetrominoType][nextTetronimoRotation]
+            ))
+            {
+                currentPosX += wall_kick_offsets[test_wall_kick][i];
+                currentPosY += wall_kick_offsets[test_wall_kick][i + 1];
+                currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }
+        }
+        else
+        {
+            printf("I");
+
+             if (!CheckRotateCollision(
+                currentPosX + wall_kick_I_offsets[test_wall_kick][i],
+                currentPosY + wall_kick_I_offsets[test_wall_kick][i+ 1],
+                tetromino_types[currentTetrominoType][nextTetronimoRotation]
+            ))
+            {
+                currentPosX += wall_kick_I_offsets[test_wall_kick][i];
+                currentPosY += wall_kick_I_offsets[test_wall_kick][i + 1];
+                currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }           
+        }
+        i+= 2;
+    }
+    return;  
 }
 
 void MainTick(const float delta_time)
@@ -299,6 +412,7 @@ void MainTick(const float delta_time)
         if (IsKeyPressed(KEY_E))
         {
             int nextTetronimoRotation = currentTetrominoRotation == 3 ? 0 : currentTetrominoRotation + 1;
+            
             if (!CheckRotateCollision(
                 currentPosX,
                 currentPosY,
@@ -308,6 +422,9 @@ void MainTick(const float delta_time)
                 currentTetrominoRotation = nextTetronimoRotation;            
                 TetrisPlaySfx(SFX_ROTATE);
             }
+            else
+                TestWallKickRotateRight(nextTetronimoRotation);
+       
         }
         
         if (IsKeyPressed(KEY_Q))
@@ -321,6 +438,8 @@ void MainTick(const float delta_time)
                 currentTetrominoRotation = nextTetronimoRotation;            
                 TetrisPlaySfx(SFX_ROTATE);
             }
+            else
+                TestWallKickRotateLeft(nextTetronimoRotation);
         }
 
         if (IsKeyPressed(KEY_RIGHT))
@@ -421,7 +540,7 @@ void MainTick(const float delta_time)
                     UpdateScore(1000);
                     TetrisPlaySfx(SFX_TETRIS);
 
-                    multiplier += .5f;
+                    multiplier += 2.5f;
                     // sprintf(str_tetris_scored, "%i", tetris_scored);
                 }
                 else
@@ -430,9 +549,11 @@ void MainTick(const float delta_time)
                     UpdateScore(current_line_deleted * 100);
                     TetrisPlaySfx(SFX_SINGLE);
 
-                    multiplier += .1f;
+                    multiplier += .5f;
                 }
 
+                if (multiplier > 9.9f)
+                    multiplier = 9.9f;
                 
                 visible_level = 1 + (score / 1000);
 
@@ -451,6 +572,8 @@ void MainTick(const float delta_time)
                 current_game_loop.tick = MainDeleteEffectTick;
 
                 UpdateStrings();
+
+                //printf("Level: %s\n", str_visible_level);
             }
 
             alreadySwappedOnce = 0;
@@ -470,6 +593,11 @@ void MainTick(const float delta_time)
                 tetromino_types[currentTetrominoType][0]
                 ))
                 {
+                    //GAME OVER
+                    TetrisPlaySfx(SFX_GAME_OVER);
+                    TetrisChangeMusic(MUSIC_LOST);
+
+
                     current_game_loop.tick = WaitForSpaceTick;
                     current_game_loop.post_draw = MainOverlayDraw;
                     //closeGame = 1;
@@ -484,7 +612,10 @@ void MainTick(const float delta_time)
             if(resetMultiplier)
                 multiplier = 1.0f;
 
-            printf("Multiplier: %f\n", multiplier);
+            sprintf(str_multiplier, "%f", multiplier);
+
+            memcpy(real_str_multiplier,str_multiplier,3);
+            //printf("Multiplier: %f\n", multiplier);
         }
 }
 
@@ -567,13 +698,18 @@ void MainDraw()
         //TEXT and Test Text
         //FormatScore(score_array, score);
 
-        DrawText(str_score, 32, 320, 20, WHITE);
-        DrawText(str_visible_level, 32, 360, 20, WHITE);
-        DrawText(str_lines_deleted, 32, 400, 20, WHITE);
-        DrawText(str_tetris_scored, 32, 440, 20, WHITE);
-        DrawText(str_speed, 32, 480, 20, WHITE);
+        DrawText("Score:", 16, 240, 20, WHITE);
+        DrawText(str_score, 16, 260, 20, WHITE);
+        DrawText(TextFormat("Level: %i", visible_level), 16, 300, 20, WHITE);
+        //DrawText(str_visible_level, 16 + MeasureText("Level: ",20), 300, 20, WHITE);
+        DrawText(TextFormat("Multiplier: %s", real_str_multiplier), 16 , 340, 20, WHITE);
+        //DrawText(str_lines_deleted, 32, 400, 20, WHITE);
+        //DrawText(str_tetris_scored, 32, 440, 20, WHITE);
+        //DrawText(str_speed, 32, 480, 20, WHITE);
 }
 
+
+int oldDeletedSquare = -1;
 void MainDeleteEffectTick(const float delta_time)
 {
     currentDeleteEffectTimer -= delta_time;
@@ -589,7 +725,7 @@ void MainDeleteEffectTick(const float delta_time)
             lines_to_delete[i] = -1;
             
         }
-
+        oldDeletedSquare = -1;
         currentDeleteEffectTimer = deleteEffectTimer;
         current_game_loop.tick = MainTick;
     }
@@ -598,20 +734,36 @@ void MainDeleteEffectTick(const float delta_time)
     int squareToChange =  (10 - currentDeleteEffectTimer / .1);
 
 
+    
+
+
     while(lines_to_delete[deletedLineCounter] > 0 && deletedLineCounter < 4)
     {
         const int offset = lines_to_delete[deletedLineCounter] * STAGE_WIDTH + 1;
+
+        if (squareToChange > oldDeletedSquare)
+        {
+            //printf("L %i, S %i\n", lines_to_delete[deletedLineCounter], squareToChange);
+            SpawnTile(
+                GetXPositionFromCellX(squareToChange),
+                GetYPositionFromCellY(lines_to_delete[deletedLineCounter]),
+                deletedLineCounter * 10 + squareToChange,
+                colorTypes[stage[offset + squareToChange]]);    
+        }
+
         stage[offset + squareToChange] = 8;
         deletedLineCounter++;
     }
+    oldDeletedSquare = squareToChange;
 }
 
 void MainOverlayDraw()
 {
-    DrawRectangle(64,64,384, 128, WHITE);
+    DrawRectangle(64,64,384, 150, WHITE);
 
     DrawTextCentral("GAME OVER", 256,100,32,BLACK);
     DrawTextCentral(str_score, 256,140,32,BLACK);
+    DrawTextCentral("Press SPACE to return to MENU", 256, 180, 20,BLACK);
 }
 
 void WaitForSpaceTick(const float delta_time)
@@ -625,6 +777,16 @@ void WaitForSpaceTick(const float delta_time)
             max_score = score;
         }
     }
+}
+
+int GetXPositionFromCellX(int x)
+{
+    return startOffSetX + TILE_SIZE * x; 
+}
+
+int GetYPositionFromCellY(int y)
+{
+    return startOffSetY + TILE_SIZE * y;
 }
 
 int main(int argc, char** argv)
@@ -644,17 +806,23 @@ int main(int argc, char** argv)
     lines_to_delete[2] = -1;
     lines_to_delete[3] = -1;
 
+    EffectBegin();
+
     while(!WindowShouldClose() && (closeGame == 0))
     {
-        TetrisLoopBgMusic();
-        current_game_loop.begin_play();
 
+        current_game_loop.begin_play();
+        TetrisLoopBgMusic();
 
         current_game_loop.tick(GetFrameTime());
+        EffectTick(GetFrameTime());
         
         BeginDrawing();
         ClearBackground(GRAY);
         current_game_loop.draw();
+
+        EffectDraw();
+
         current_game_loop.post_draw();
         EndDrawing();
     }

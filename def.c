@@ -29,6 +29,32 @@ int reset_stage[] =
     9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
 };
 
+
+
+const int wall_kick_offsets[8][8] =
+{
+    {-1, +0, -1, +1, +0, -2, -1, +2},
+    {+1, +0, +1, -1, +0, +2, +1, +2},
+    {+1, +0, +1, -1, +0, +2, +1, +2},
+    {-1, +0, -1, +1, +0, -2, -1, -2},
+    {+1, +0, +1, +1, +0, -2, +1, -2},
+    {-1, +0, -1, -1, +0, +2, -1, +2},
+    {-1, +0, -1, -1, +0, +2, -1, +2},
+    {+1, +0, +1, +1, +0, -2, +1, -2}
+};
+
+const int wall_kick_I_offsets[8][8] =
+{
+    {-2,   0, +1, +0, -2, -1, +1, +2},
+    { 2,  0, -1,  0,  2,  1, -1, -2},
+    {-1,  0,  2,  0,  2,  1, -1, -2},
+    { 1,  0, -2,  0, -1,  2,  2, -1},
+    { 2,  0, -1,  0,  2,  1, -1, -2},
+    {-2,  0,  1,  0, -2, -1,  1,  2},
+    { 1,  0, -2,  0,  1, -2, -2,  1},
+    {-1,  0,  2,  0, -1,  2,  2, -1}
+};
+
 const Color colorTypes[10] =
 {
     {0,0,0,0},
@@ -46,31 +72,31 @@ const Color colorTypes[10] =
 #pragma region //L PIECE
 const int tetronimo_L_0 [] =
 {
+      0,  0,
+     -1,  0,
+      1,  0,
+      1, -1
+};
+const int tetronimo_L_90 [] =
+{
      0,  0,
      0, -1,
      0,  1,
      1,  1
 };
-const int tetronimo_L_90 [] =
+const int tetronimo_L_180 [] =
 {
      0,  0,
      1,  0,
     -1,  0,
     -1,  1
 };
-const int tetronimo_L_180 [] =
+const int tetronimo_L_270 [] =
 {
      0,   0,
      0,   1,
      0,  -1,
     -1,  -1
-};
-const int tetronimo_L_270 [] =
-{
-      0,  0,
-     -1,  0,
-      1,  0,
-      1, -1
 };
 #pragma endregion
 
@@ -78,30 +104,30 @@ const int tetronimo_L_270 [] =
 int tetronimo_J_0 [] =
 {
       0,  0,
-      0, -1,
-      0,  1,
-     -1,  1
+     -1,  0,
+      1,  0,
+     -1, -1
 };
 int tetronimo_J_90 [] =
-{
-     0,  0,
-     1,  0,
-    -1,  0,
-     1,  1
-};
-int tetronimo_J_180 [] =
 {
      0,   0,
      0,   1,
      0,  -1,
      1,  -1
 };
+int tetronimo_J_180 [] =
+{
+     0,  0,
+     1,  0,
+    -1,  0,
+     1,  1
+};
 int tetronimo_J_270 [] =
 {
       0,  0,
-     -1,  0,
-      1,  0,
-     -1, -1
+      0, -1,
+      0,  1,
+     -1,  1
 };
 #pragma endregion
 
@@ -147,9 +173,9 @@ int tetronimo_Z_0 [] =
 int tetronimo_Z_90 [] =
 {
       0,  0,
-     -1,  0,
-      -1,  1,
-     0,  -1
+      1,  0,
+      1,  -1,
+      0,  1
 };
 int tetronimo_Z_180 [] =
 {
@@ -161,9 +187,9 @@ int tetronimo_Z_180 [] =
 int tetronimo_Z_270 [] =
 {
       0,  0,
-      1,  0,
-      1,  -1,
-      0,  1
+     -1,  0,
+      -1,  1,
+     0,  -1
 };
 #pragma endregion
 
@@ -202,61 +228,61 @@ int tetronimo_O_270 [] =
 int tetronimo_T_0 [] =
 {
     0,  0,
-    0, -1,
-    1,  0,
-    0,  1
-};
-int tetronimo_T_90 [] =
-{
-    0,  0,
     -1, 0,
     0,  -1,
     1,  0
 };
+int tetronimo_T_90 [] =
+{
+    0,  0,
+    0, -1,
+    1,  0,
+    0,  1
+};
 int tetronimo_T_180 [] =
+{
+    0,  0,
+    -1, 0,
+    0,  1,
+    1,  0
+};
+int tetronimo_T_270 [] =
 {
     0,  0,
     0, -1,
     -1,  0,
     0,  1
 };
-int tetronimo_T_270 [] =
-{
-    0,  0,
-    -1, 0,
-    0,  1,
-    1,  0
-};
 #pragma endregion
 
 #pragma region //I PIECE
 int tetronimo_I_0 [] =
 {
-    0,  0,
-    0, -1,
-    0,  1,
-    0,  2
+    -1,  -1,
+    0,  -1,
+    1,  -1,
+    2,  -1
 };
 int tetronimo_I_90 [] =
 {
-    0,  0,
-    -1, 0,
-     1, 0,
-     2,  0
+    1, -2,
+    1, -1,
+    1,  0,
+    1,  1
 };
 int tetronimo_I_180 [] =
 {
+    -1, 0,
     0,  0,
-    0, -1,
-    0,  1,
-    0,  2
+    1,  0,
+    2,  0
 };
 int tetronimo_I_270 [] =
 {
+    0, -2,
+    0, -1,
     0,  0,
-    -1, 0,
-     1, 0,
-     2,  0
+    0,  1
 };
 #pragma endregion
 
@@ -284,3 +310,4 @@ void DrawTextCentral(char* str, int x,  int y, int font_size, Color color)
 
     DrawText(str, start_x, y, font_size, color);
 }
+
