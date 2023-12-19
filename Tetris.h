@@ -51,8 +51,8 @@
 
 extern int reset_stage[];
 extern int stage[];
-extern const int wall_kick_offsets[8][8];
-extern const int wall_kick_I_offsets[8][8];
+extern const int* wall_kick_offsets[8];
+extern const int* wall_kick_I_offsets[8];
 extern const Color colorTypes[10];
 extern const int *tetromino_types[7][4];
 
@@ -64,6 +64,25 @@ struct game_loop
     void(*post_draw)();
     int play_begin;
 };
+
+
+typedef struct Block{
+    int x;
+    int y;
+
+    Color color;
+}Block;
+
+typedef struct Str_Tetronimo{
+    int x;
+    int y;
+    int shape;
+    int rotation;
+
+    int *current_shape;
+
+    Color color;
+} Tetronimo;
 
 extern struct game_loop current_game_loop;
 typedef struct Tile Tile;
@@ -135,4 +154,8 @@ void SpawnTile(const int x, const int y, const int number, Color color);
 int GetXPositionFromCellX(int cell_num);
 int GetYPositionFromCellY(int cell_num);
 
+int TetrisLoadImages();
+int TetrisUnloadImages();
+
+void TetrisDrawPowerUp(const int pu,const int x,const int y);
 #pragma endregion

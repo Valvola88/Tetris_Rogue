@@ -35,10 +35,12 @@ void MainMenuDraw()
     DrawTextCentral("TETRIS", 256, 100, 100, WHITE);
     DrawTextCentral("Press SPACE to begin", 256, 200, 32, WHITE);
 
+    for(int i = 0; i< 5;i ++)
+        TetrisDrawPowerUp(i, 200,250 + i * 50);
     
     if (max_score)
     {
-        DrawTextCentral(TextFormat("Max Score: %d", max_score), 256,300,40,WHITE);
+        DrawTextCentral((char *)TextFormat("Max Score: %d", max_score), 256,300,40,WHITE);
     }
 }
 

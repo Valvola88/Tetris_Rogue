@@ -1,0 +1,117 @@
+void TestWallKickRotateLeft(const int nextTetronimoRotation)
+{
+    int test_wall_kick;
+    
+    switch (currentTetrominoRotation)
+    {
+    case 0: test_wall_kick = WALLKICK_0_TO_270;
+        break;
+    
+    case 1: test_wall_kick = WALLKICK_90_TO_0;
+        break;
+        
+    case 2: test_wall_kick = WALLKICK_180_TO_90;
+        break;
+        
+    case 3: test_wall_kick = WALLKICK_270_TO_180;
+        break;
+    }
+
+    int i = 0;
+    while (i < 8)
+    {
+        if (currentTetrominoType != TETRONIMO_I)
+        {
+            if (!CheckRotateCollision(
+                currentPosX + wall_kick_offsets[test_wall_kick][i],
+                currentPosY + wall_kick_offsets[test_wall_kick][i+ 1],
+                tetromino_types[currentTetrominoType][nextTetronimoRotation]
+            ))
+            {
+                currentPosX += wall_kick_offsets[test_wall_kick][i];
+                currentPosY += wall_kick_offsets[test_wall_kick][i + 1];
+                currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }
+        }
+        else
+        {
+            printf("I");
+
+             if (!CheckRotateCollision(
+                currentPosX + wall_kick_I_offsets[test_wall_kick][i],
+                currentPosY + wall_kick_I_offsets[test_wall_kick][i+ 1],
+                tetromino_types[currentTetrominoType][nextTetronimoRotation]
+            ))
+            {
+                currentPosX += wall_kick_I_offsets[test_wall_kick][i];
+                currentPosY += wall_kick_I_offsets[test_wall_kick][i + 1];
+                currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }           
+        }
+        i+= 2;
+    }
+    return;  
+}
+
+void TestWallKickRotateRight(const int nextTetronimoRotation)
+{
+    int test_wall_kick;
+    
+    switch (currentTetrominoRotation)
+    {
+    case 0: test_wall_kick = WALLKICK_0_TO_90;
+        break;
+    
+    case 1: test_wall_kick = WALLKICK_90_TO_180;
+        break;
+        
+    case 2: test_wall_kick = WALLKICK_180_TO_270;
+        break;
+        
+    case 3: test_wall_kick = WALLKICK_270_TO_0;
+        break;
+    }
+
+    int i = 0;
+    while (i < 8)
+    {
+        if (currentTetrominoType != TETRONIMO_I)
+        {
+            if (!CheckRotateCollision(
+                currentPosX + wall_kick_offsets[test_wall_kick][i],
+                currentPosY + wall_kick_offsets[test_wall_kick][i+ 1],
+                tetromino_types[currentTetrominoType][nextTetronimoRotation]
+            ))
+            {
+                currentPosX += wall_kick_offsets[test_wall_kick][i];
+                currentPosY += wall_kick_offsets[test_wall_kick][i + 1];
+                currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }
+        }
+        else
+        {
+            printf("I");
+
+             if (!CheckRotateCollision(
+                currentPosX + wall_kick_I_offsets[test_wall_kick][i],
+                currentPosY + wall_kick_I_offsets[test_wall_kick][i+ 1],
+                tetromino_types[currentTetrominoType][nextTetronimoRotation]
+            ))
+            {
+                currentPosX += wall_kick_I_offsets[test_wall_kick][i];
+                currentPosY += wall_kick_I_offsets[test_wall_kick][i + 1];
+                currentTetrominoRotation = nextTetronimoRotation;            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }           
+        }
+        i+= 2;
+    }
+    return;  
+}
