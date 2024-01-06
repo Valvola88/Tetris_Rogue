@@ -1,7 +1,5 @@
 #include "Tetris.h"
 
-
-
 #pragma region Initial Values
 int reset_stage[] = 
 {
@@ -29,7 +27,7 @@ int reset_stage[] =
     9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
 };
 
-
+#pragma region WallKiks
 const int wk_0[8] = {-1, +0, -1, +1, +0, -2, -1, +2};
 const int wk_1[8] = {+1, +0, +1, -1, +0, +2, +1, +2};
 const int wk_2[8] = {+1, +0, +1, -1, +0, +2, +1, +2};
@@ -72,7 +70,9 @@ const int *wall_kick_I_offsets[8] =
     wki_7
 };
 
-const Color colorTypes[10] =
+#pragma endregion
+
+const Color colorTypes[20] =
 {
     {0,0,0,0},
     {255,161,0,255},
@@ -83,13 +83,16 @@ const Color colorTypes[10] =
     {200,122,255,255},
     {102,199,255,255},
     {200,200,200,200},
-    {255,255,255,255}
+    {255,255,255,255},
+    {0,0,0,255},
+    {64,64,64,255},
+    {255,255,255,255},
+    {255,255,255,255},
+    {255,255,255,255},
+    {255,255,255,255},
+    {255,255,255,255},
+    {255,255,255,255},
 };
-
-#pragma region WallKiks
-
-#pragma endregion
-
 
 #pragma region //L PIECE
 const int tetronimo_L_0 [] =
@@ -321,15 +324,26 @@ const int *tetromino_types[7][4] =
 };
 
 
+// typedef struct Enemy{
+    
+//     float life;
+//     int enemy_type;
+//     int action_timer;
+//     void(*attack)();
+//     Texture2D mytexture;
 
-//Functions
-void DrawTextCentral(char* str, int x,  int y, int font_size, Color color)
+// } Enemy;
+
+const int EnemiesHealth[ENEMY_LAST] =
 {
-    const int len = strlen(str);
-    const int text_size = MeasureText(str,font_size);
+    1,
+    15,
+    30
+};
 
-    int start_x = x - (text_size / 2);
-
-    DrawText(str, start_x, y, font_size, color);
-}
-
+const int EnemiesTimer[ENEMY_LAST] =
+{
+    5,
+    4,
+    6
+};

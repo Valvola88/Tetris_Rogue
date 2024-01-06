@@ -1,29 +1,17 @@
 #include "Tetris.h"
 
-typedef struct Tile
-{
-    Color my_color;
-    int x;
-    int y;
-    void (*tick)(Tile *self, const float delta_time);
-    void (*draw)(Tile *self);
-    int velocity_x;
-    int velocity_y;
 
-    int isActive;
-
-} Tile;
 
 Tile tiles[40];
 
 //Tile only_tile;
 
-void TileEmptyTick(Tile *self, const float delta_time)
+void TetrisTileEmptyTick(Tile *self, const float delta_time)
 {
 
 }
 
-void TileMove(Tile *self, const float delta_time)
+void TetrisTileMove(Tile *self, const float delta_time)
 {
 
     self->x += self->velocity_x;
@@ -32,7 +20,7 @@ void TileMove(Tile *self, const float delta_time)
     self->velocity_y += 1;
 }
 
-void TileDraw(Tile *self)
+void TetrisTileDraw(Tile *self)
 {
     DrawRectangle(self->x,self->y,TILE_SIZE,TILE_SIZE,self->my_color);
     DrawRectangleLines(self->x,self->y,TILE_SIZE,TILE_SIZE,BLACK);
@@ -45,8 +33,8 @@ void EffectBegin()
     // only_tile.isActive = 0;
     for(int i = 0; i<40;i++)
     {
-        tiles[i].tick = TileMove;
-        tiles[i].draw = TileDraw;
+        tiles[i].tick = TetrisTileMove;
+        tiles[i].draw = TetrisTileDraw;
         tiles[i].isActive = 0;
     }   
 }
@@ -85,7 +73,6 @@ void EffectDraw()
     }       
 }
 
-
 void SpawnTile(const int x, const int y, const int number, Color color)
 {
     // only_tile.x = x;
@@ -106,4 +93,15 @@ void SpawnTile(const int x, const int y, const int number, Color color)
     tiles[number].isActive = 1;
 }
 
+int DestroyTetronimoEffect(Tetronimo *tetronimo)
+{
+    for(int i = 0; i< 4; i++)
+    {
+        SpawnTile(
+        START_OFFSET_X + (tetronimo->x + tetronimo->current_shape[i * 2]) * TILE_SIZE,
+        START_OFFSET_Y + (tetronimo->y + tetronimo->current_shape[i * 2 + 1]) * TILE_SIZE, 
+        i, tetronimo->color);
+    }
 
+    return 0;
+}

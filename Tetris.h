@@ -11,8 +11,8 @@
 #define START_MOVE_TIME_HOLD_TIMER .5f
 #define MOVE_HOLD_DOWN_DELAY .1f
 #define VISIBLE_PIECES 5
-#define START_OFFSET_X (WINDOW_WIDTH / 2) - (STAGE_WIDTH / 2 * TILE_SIZE)
-#define START_OFFSET_Y (WINDOW_WIDTH / 2) - (STAGE_HEIGHT / 2 * TILE_SIZE)
+#define START_OFFSET_X (WINDOW_WIDTH / 2) - (STAGE_WIDTH / (2 * TILE_SIZE))
+#define START_OFFSET_Y (WINDOW_WIDTH / 2) - (STAGE_HEIGHT / (2 * TILE_SIZE))
 #define STAGE_WIDTH 12
 #define STAGE_HEIGHT 22
 #define TILE_SIZE 16
@@ -32,7 +32,8 @@
 #define SFX_LVLUP 6
 #define SFX_HOLD 7
 #define SFX_GAME_OVER 8
-#define SFX_LAST 9
+#define SFX_ERROR 9
+#define SFX_LAST 10
 
 #define STAGE_DIMENSION 264
 
@@ -46,14 +47,29 @@
 #define WALLKICK_270_TO_180 5
 #define WALLKICK_0_TO_270 7
 
+#define TETRONIMO_L 0
+#define TETRONIMO_J 1
+#define TETRONIMO_S 2
+#define TETRONIMO_Z 3
+#define TETRONIMO_O 4
+#define TETRONIMO_T 5
 #define TETRONIMO_I 6
 
+#define ENEMY_SIMPLE 0
+#define ENEMY_ADVANCED 1
+#define ENEMY_BOSS 2
+#define ENEMY_LAST 3
+
+#define REWARD_TYPE_POTION 0
+#define REWARD_TYPE_TRINKET 1
+
+#define TRINKET_GLASSES 0
 
 extern int reset_stage[];
 extern int stage[];
 extern const int* wall_kick_offsets[8];
 extern const int* wall_kick_I_offsets[8];
-extern const Color colorTypes[10];
+extern const Color colorTypes[20];
 extern const int *tetromino_types[7][4];
 
 struct game_loop
@@ -66,12 +82,20 @@ struct game_loop
 };
 
 
-typedef struct Block{
+typedef struct Tile
+{
+    Color my_color;
+    int index;
     int x;
     int y;
+    void (*tick)(struct Tile *self, const float delta_time);
+    void (*draw)(struct Tile *self);
+    int velocity_x;
+    int velocity_y;
 
-    Color color;
-}Block;
+    int isActive;
+
+} Tile;
 
 typedef struct Str_Tetronimo{
     int x;
@@ -82,9 +106,46 @@ typedef struct Str_Tetronimo{
     int *current_shape;
 
     Color color;
+    int powerUpTile;
+
 } Tetronimo;
 
+typedef struct Reward{
+
+    char* name;
+
+    int type;
+    int subtype;
+
+} Reward;
+
+typedef struct Enemy{
+    
+    int enemy_type;
+
+    int life;
+    int action_timer;
+
+    void(*attack)();
+    Texture2D mytexture;
+
+} Enemy;
+
+typedef struct Character{
+
+    char* name;
+    int damage;
+    int life;
+    Texture2D mytexture;
+
+} Character;
+
+
 extern struct game_loop current_game_loop;
+extern Character main_character;
+extern Enemy current_enemy;
+extern Tetronimo mainTetronimo;
+
 typedef struct Tile Tile;
 
 #pragma endregion
@@ -141,21 +202,77 @@ void MainBeginPlay();
 void MainTick(const float delta_time);
 void WaitForSpaceTick(const float delta_time);
 
+
+void FormatScore(char* score_array, int score);
+
+
 void EndMenuDraw();
 void EndMenuBeginPlay();
 void EndMenuTick(const float delta_time);
 
-
 void EffectBegin();
 void EffectTick(const float delta_time);
 void EffectDraw();
+int DestroyTetronimoEffect(Tetronimo *tetronimo);
+
+
+void RogueBegin();
+void RoguePiecePlaced();
+void RogueInputTick(const float delta_time);
+void RogueDraw();
+void RogueLineScored();
+void RogueTetrisScored();
+void RogueRewardTick(const float delta_time);
+void RogueRewardDraw();
+void RogueRewardBegin();
+
 void SpawnTile(const int x, const int y, const int number, Color color);
 
 int GetXPositionFromCellX(int cell_num);
 int GetYPositionFromCellY(int cell_num);
 
 int TetrisLoadImages();
+int TetrisLoadTexture(Texture2D *texture, char* path, float scale);
 int TetrisUnloadImages();
 
 void TetrisDrawPowerUp(const int pu,const int x,const int y);
+
+void TestWallKickRotateLeft(Tetronimo *myTetronimo, const int nextTetronimoRotation);
+void TestWallKickRotateRight(Tetronimo *myTetronimo, const int nextTetronimoRotation);
+
+void TetrisTileDraw(Tile *self);
+
+void DrawTetromino2(Tetronimo *tetronimo);
+void DrawTetromino(
+    const int start_x,
+    const int start_y,
+    const int *tetronimo,
+    const Color c);
+
+void SetTetronimoRotation(Tetronimo *tetro, const int rotation);
+int SetTetronimoShape(Tetronimo *tetro, const int shape);
+void SpawnNewTetronimo(Tetronimo *tetro, const int shape);
+int CreateBlockUnder(int position);
+void PrintTetronimo(Tetronimo *t);
+
+typedef struct Clickable{
+
+    int x;
+    int y;
+    int w;
+    int h;
+
+    int utils_value;
+
+    Texture2D* texture;
+
+    int(*Clicked)(int utils);
+
+} Clickable;
+
+int TetrisSetTextureClickable(Clickable *click, Texture2D *texture);
+int TetrisDrawClickable(Clickable *self);
+int TetrisIsMouseInside(Clickable *self);
+int TetrisClick(Clickable* self);
+
 #pragma endregion

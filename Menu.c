@@ -33,10 +33,7 @@ void MainMenuTick(const float delta_time)
 void MainMenuDraw()
 {
     DrawTextCentral("TETRIS", 256, 100, 100, WHITE);
-    DrawTextCentral("Press SPACE to begin", 256, 200, 32, WHITE);
-
-    for(int i = 0; i< 5;i ++)
-        TetrisDrawPowerUp(i, 200,250 + i * 50);
+    DrawTextCentral("Press SPACE to rogue", 256, 200, 32, WHITE);
     
     if (max_score)
     {

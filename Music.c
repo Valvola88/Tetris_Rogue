@@ -26,6 +26,7 @@ int TetrisLoadMusic()
     sfx[SFX_HOLD] = LoadSound("resources/sfx/hold.wav");
     sfx[SFX_LVLUP] = LoadSound("resources/sfx/lvlup.wav");
     sfx[SFX_GAME_OVER] = LoadSound("resources/sfx/game_over.mp3");
+    sfx[SFX_ERROR] = LoadSound("resources/sfx/error.wav");
 
     return 0;
 }

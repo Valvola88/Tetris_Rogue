@@ -14,7 +14,19 @@ int TetrisLoadImages()
         PowerUps[i] = LoadTextureFromImage(image);
         UnloadImage(image);
     }
+    return 0;
 }
+
+int TetrisLoadTexture(Texture2D *texture, char* path, float scale)
+{
+    Image image = LoadImage(path);
+    ImageResize(&image, image.width * scale, image.height * scale);
+    *texture = LoadTextureFromImage(image);
+    UnloadImage(image);
+
+
+    return 0;
+}  
 
 void TetrisDrawPowerUp(const int pu,const int x,const int y)
 {
@@ -24,9 +36,12 @@ void TetrisDrawPowerUp(const int pu,const int x,const int y)
     DrawTexture(PowerUps[pu],x,y,WHITE);
 }
 
-
 int TetrisUnloadImages()
 {
     for(int i =0; i< MAX_POWERUPS;i++)
         UnloadTexture(PowerUps[i]);
+
+    UnloadTexture(main_character.mytexture);
+    UnloadTexture(current_enemy.mytexture);
+    return 0;
 }

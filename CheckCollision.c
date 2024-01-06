@@ -68,3 +68,97 @@ int GetLowestPiecePosition(
     return current_y;
 
 }
+
+void TestWallKickRotateLeft(Tetronimo *myTetronimo, const int nextTetronimoRotation)
+{
+    int test_wall_kick;
+    
+    switch (myTetronimo->rotation)
+    {
+    case 0: test_wall_kick = WALLKICK_0_TO_270;
+        break;
+    
+    case 1: test_wall_kick = WALLKICK_90_TO_0;
+        break;
+        
+    case 2: test_wall_kick = WALLKICK_180_TO_90;
+        break;
+        
+    case 3: test_wall_kick = WALLKICK_270_TO_180;
+        break;
+    }
+
+    const int *table_to_look = wall_kick_offsets[test_wall_kick];
+    if (myTetronimo->shape == TETRONIMO_I)
+    {
+        table_to_look = wall_kick_I_offsets[test_wall_kick];
+    }
+
+    int i = 0;
+    while (i < 8)
+    {
+        {
+            if (!CheckRotateCollision(
+                myTetronimo->x + table_to_look[i],
+                myTetronimo->y + table_to_look[i+ 1],
+                tetromino_types[myTetronimo->shape][nextTetronimoRotation]
+            ))
+            {
+                myTetronimo->x += table_to_look[i];
+                myTetronimo->y += table_to_look[i + 1];
+                SetTetronimoRotation(myTetronimo, nextTetronimoRotation);            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }
+        }
+        i+= 2;
+    }
+    return;  
+}
+
+void TestWallKickRotateRight(Tetronimo *myTetronimo, const int nextTetronimoRotation)
+{
+    int test_wall_kick;
+    
+    switch (myTetronimo->rotation)
+    {
+    case 0: test_wall_kick = WALLKICK_0_TO_90;
+        break;
+    
+    case 1: test_wall_kick = WALLKICK_90_TO_180;
+        break;
+        
+    case 2: test_wall_kick = WALLKICK_180_TO_270;
+        break;
+        
+    case 3: test_wall_kick = WALLKICK_270_TO_0;
+        break;
+    }
+
+    const int *table_to_look = wall_kick_offsets[test_wall_kick];
+    if (myTetronimo->shape == TETRONIMO_I)
+    {
+        table_to_look = wall_kick_I_offsets[test_wall_kick];
+    }
+
+    int i = 0;
+    while (i < 8)
+    {
+        {
+            if (!CheckRotateCollision(
+                myTetronimo->x + table_to_look[i],
+                myTetronimo->y + table_to_look[i+ 1],
+                tetromino_types[myTetronimo->shape][nextTetronimoRotation]
+            ))
+            {
+                myTetronimo->x += table_to_look[i];
+                myTetronimo->y += table_to_look[i + 1];
+                SetTetronimoRotation(myTetronimo, nextTetronimoRotation);            
+                TetrisPlaySfx(SFX_ROTATE);
+                return;
+            }
+        }
+        i+= 2;
+    }
+    return;  
+}
