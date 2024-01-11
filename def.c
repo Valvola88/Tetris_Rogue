@@ -324,15 +324,30 @@ const int *tetromino_types[7][4] =
 };
 
 
-// typedef struct Enemy{
-    
-//     float life;
-//     int enemy_type;
-//     int action_timer;
-//     void(*attack)();
-//     Texture2D mytexture;
 
-// } Enemy;
+// typedef struct Reward{
+
+//     char* name; 
+//     char* tooltip; 
+
+//     int type;
+//     int subtype;
+
+// } Reward;
+
+extern Texture2D PowerUps[];
+const Reward REWARDS[]= 
+{
+    {"POTION L", "\nCHANGE YOUR TETRONIMO INTO L SHAPE", REWARD_TYPE_POTION, TETRONIMO_L, &PowerUps[TETRONIMO_L]},
+    {"POTION J", "\nCHANGE YOUR TETRONIMO INTO J SHAPE", REWARD_TYPE_POTION, TETRONIMO_J, &PowerUps[TETRONIMO_J]},
+    {"POTION S", "\nCHANGE YOUR TETRONIMO INTO S SHAPE", REWARD_TYPE_POTION, TETRONIMO_S, &PowerUps[TETRONIMO_S]},
+    {"POTION Z", "\nCHANGE YOUR TETRONIMO INTO Z SHAPE", REWARD_TYPE_POTION, TETRONIMO_Z, &PowerUps[TETRONIMO_Z]},
+    {"POTION T", "\nCHANGE YOUR TETRONIMO INTO T SHAPE", REWARD_TYPE_POTION, TETRONIMO_T, &PowerUps[TETRONIMO_T]},
+    {"POTION O", "\nCHANGE YOUR TETRONIMO INTO O SHAPE", REWARD_TYPE_POTION, TETRONIMO_O, &PowerUps[TETRONIMO_O]},
+    {"POTION I", "\nCHANGE YOUR TETRONIMO INTO I SHAPE", REWARD_TYPE_POTION, TETRONIMO_I, &PowerUps[TETRONIMO_I]},
+    {"FALLER", "\nCOLLAPSE YOUR TETRONIMO\nCHARGE 4", REWARD_TYPE_TRINKET, TRINKET_FALLER, &PowerUps[7]},
+    {"MIRROR", "\nMIRRORS YOUR TETRONIMO\nCHARGE 2", REWARD_TYPE_TRINKET, TRINKET_MIRROR, &PowerUps[8]},
+};
 
 const int EnemiesHealth[ENEMY_LAST] =
 {

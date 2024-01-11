@@ -1,14 +1,22 @@
 #include "Tetris.h"
 
-int potions[5] = {6,-1,-1, -1, -1};
-Reward rewards[4];
+#define MAX_POSSIBLE_POTION 5
+#define MAX_POSSIBLE_VISIBLE_REWARDS 5
+
+
+int potions[MAX_POSSIBLE_POTION] = {6,-1,-1, -1, -1};
+
+
+Reward *current_rewards[MAX_POSSIBLE_VISIBLE_REWARDS];
+Clickable rewards_buttons[MAX_POSSIBLE_POTION];
 
 Character main_character;
 Enemy current_enemy;
-Clickable visible_rewards[3];
 
 int visible_potions = 3;
+int visible_rewards_number = 3;
 
+extern Reward REWARDS[];
 extern Texture2D PowerUps[];
 extern int EnemiesHealth[];
 extern int EnemiesTimer[];
@@ -132,38 +140,28 @@ void RogueDraw()
     DrawRectangle(374,70,green_rect,10,GREEN);
 }
 
+void DrawTooltip(char* text)
+{
+    if (!text)
+        return;
+
+    DrawTextCentral(text, 256, 70, 16, BLACK);
+}
+
 void RogueRewardDraw()
 {
     DrawRectangle(64,64,384, 150, WHITE);
 
-    DrawTextCentral(rewards[0].name, 132,140,10,BLACK);
-    TetrisDrawClickable(&visible_rewards[0]);
-    // TetrisDrawPowerUp(rewards[0].subtype, 100,150);
-    // DrawTextCentral(rewards[1].name, 232,140,10,BLACK);
-    // TetrisDrawPowerUp(rewards[1].subtype, 200,150);
-    // DrawTextCentral(rewards[2].name, 332,140,10,BLACK);
-    // TetrisDrawPowerUp(rewards[2].subtype, 300,150);
-}
-
-void RogueRewardTick(const float delta_time)
-{
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    for(int i = 0; i < visible_rewards_number;i++)
     {
-        int valid_click = 0;
-        for(int i = 0; i < 1;i++)
+        if (TetrisIsMouseInside(&rewards_buttons[i]))
         {
-            {
-                valid_click = valid_click + TetrisClick(&visible_rewards[i]);
-            }
+            DrawTooltip(current_rewards[i]->tooltip);
         }
-
-        if (valid_click)
-        {
-            current_game_loop.post_draw = EmptyDraw;
-            current_game_loop.tick = MainTick;
-        }
-    } 
+        TetrisDrawClickable(&rewards_buttons[i]);  
+    }
 }
+
 
 int AddPotion(int potion_number){
 
@@ -178,6 +176,127 @@ int AddPotion(int potion_number){
     return 0;
 }
 
+// char *RewardGetNameAndTexture(int type, int subtype, Texture2D **text)
+// {
+//     char *name = "NOT VALID";
+
+//     switch (type)
+//     {
+//     case REWARD_TYPE_POTION:
+//         switch (subtype)
+//         {
+//         case TETRONIMO_L:
+//             name = "Potion L";
+//             *text = &PowerUps[0];
+//             break;
+//         case TETRONIMO_J:
+//             name = "Potion J";
+//             *text = &PowerUps[1];
+//             break;
+//         case TETRONIMO_S:
+//             name = "Potion S";
+//             *text = &PowerUps[2];
+//             break;
+//         case TETRONIMO_Z:
+//             name = "Potion Z";
+//             *text = &PowerUps[3];
+//             break;
+//         case TETRONIMO_O:
+//             name = "Potion O";
+//             *text = &PowerUps[4];
+//             break;
+//         case TETRONIMO_T:
+//             name = "Potion T";
+//             *text = &PowerUps[5];
+//             break;
+//         case TETRONIMO_I:
+//             name = "Potion I";
+//             *text = &PowerUps[6];
+//             break;
+//         default:
+//             break;
+//         }
+
+//         break;
+    
+//     default:
+//         break;
+//     }
+//     printf("\nn:%s", name);
+//     return name;
+// }
+
+void RogueRewardTick(const float delta_time)
+{
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    {
+        int valid_click = 0;
+        for(int i = 0; i < visible_rewards_number;i++)
+        {
+            {
+                valid_click = valid_click + TetrisClick(&rewards_buttons[i]);
+            }
+        }
+
+        if (valid_click)
+        {
+            current_game_loop.post_draw = EmptyDraw;
+            current_game_loop.tick = MainTick;
+        }
+    } 
+}
+
+
+
+void SetReward( int number,int reward, int x, int y)
+{
+    if (number < 0 || number > visible_rewards_number)
+        return;
+    
+    current_rewards[number] = &REWARDS[reward];
+    
+    TetrisSetTextureClickable(&rewards_buttons[number], current_rewards[number]->textrue);
+    rewards_buttons[number].name = current_rewards[number]->name;
+    rewards_buttons[number].x = x;
+    rewards_buttons[number].y = y;
+
+    switch (current_rewards[number]->type)
+    {
+        case REWARD_TYPE_POTION:
+            rewards_buttons[number].Clicked = AddPotion;
+            rewards_buttons[number].utils_value = current_rewards[number]->subtype;
+            break;
+    
+    default:
+        break;
+    }
+
+    return;
+}
+
+void SetRandomRewards(int amount)
+{
+    if (amount > visible_rewards_number)
+        return;
+
+    for(int i = 0 ; i < amount; i++)
+    {
+        int tmpx = 100 + (512 - 200 - REWARD_SIZE) * ((float)i / (float)(amount - 1));
+
+        int reward = GetRandomValue(0,8);
+
+        Texture2D *text = NULL;
+
+        SetReward(
+            i,
+            reward,
+            tmpx,
+            150
+        );
+
+    }
+}
+
 void RogueRewardBegin()
 {
     showRewardBox  = 0;
@@ -185,15 +304,18 @@ void RogueRewardBegin()
     current_game_loop.post_draw = RogueRewardDraw;
     current_game_loop.begin_play = EmptyBegin;
 
-    rewards[0].name = "I Potion";
-    rewards[0].type = REWARD_TYPE_POTION;
-    rewards[0].subtype = TETRONIMO_I;
-    
-    TetrisSetTextureClickable(&visible_rewards[0], &PowerUps[TETRONIMO_I]);
-    visible_rewards[0].x = 100;
-    visible_rewards[0].y = 150;
-    visible_rewards[0].Clicked = AddPotion;
-    visible_rewards[0].utils_value = TETRONIMO_I;
+    SetRandomRewards(visible_rewards_number);
+
+    // for(int i = 0; i< 3;i++)
+    // SetReward(
+    //     i,
+    //     "I Potion",
+    //     REWARD_TYPE_POTION,
+    //     i,
+    //     100 + 100 * i,
+    //     150,
+    //     &PowerUps[i]
+    // );
     // rewards[1].name = "J Potion";
     // rewards[1].type = REWARD_TYPE_POTION;
     // rewards[1].subtype = TETRONIMO_J;

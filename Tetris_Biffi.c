@@ -310,7 +310,6 @@ void MainTick(const float delta_time)
 
         }
 
-
         timeToMoveDown -= delta_time;
         if (IsKeyPressed(KEY_E))
         {
@@ -548,7 +547,6 @@ void MainTick(const float delta_time)
         //printf("Multiplier: %f\n", multiplier);
         
     }
-
 
     RogueInputTick(delta_time);
 }

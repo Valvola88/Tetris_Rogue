@@ -1,5 +1,6 @@
 #include "Tetris.h"
 
+
 int TetrisSetTextureClickable(Clickable* click, Texture2D* texture)
 {
     click->texture = texture;
@@ -14,6 +15,14 @@ int TetrisSetTextureClickable(Clickable* click, Texture2D* texture)
 
 int TetrisDrawClickable(Clickable* self)
 {
+    if (self->texture == NULL)
+        return 0 ;
+
+    if (self->name)
+    {
+        DrawTextCentral(self->name, self->x + (self->w * .5f), self->y - 12, 10, BLACK);
+    }
+
     if (TetrisIsMouseInside(self))
     {
         DrawTexture(*(self->texture), self->x, self->y, YELLOW);
@@ -26,6 +35,9 @@ int TetrisDrawClickable(Clickable* self)
 
 int TetrisClick(Clickable* self)
 {
+    if (self == NULL)
+        return 0;
+
     if (!TetrisIsMouseInside(self))
         return 0;
 

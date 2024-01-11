@@ -1,6 +1,6 @@
 #include "Tetris.h"
 
-#define MAX_POWERUPS 8
+#define MAX_POWERUPS 16
 
 Texture2D PowerUps[MAX_POWERUPS];
 

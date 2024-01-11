@@ -11,12 +11,13 @@
 #define START_MOVE_TIME_HOLD_TIMER .5f
 #define MOVE_HOLD_DOWN_DELAY .1f
 #define VISIBLE_PIECES 5
-#define START_OFFSET_X (WINDOW_WIDTH / 2) - (STAGE_WIDTH / (2 * TILE_SIZE))
-#define START_OFFSET_Y (WINDOW_WIDTH / 2) - (STAGE_HEIGHT / (2 * TILE_SIZE))
+#define START_OFFSET_X WINDOW_WIDTH / 2 - STAGE_WIDTH / 2 * TILE_SIZE
+#define START_OFFSET_Y WINDOW_WIDTH / 2 - STAGE_HEIGHT / 2 * TILE_SIZE
 #define STAGE_WIDTH 12
 #define STAGE_HEIGHT 22
 #define TILE_SIZE 16
 #define TETRONIMO_SIZE 4
+#define REWARD_SIZE 48
 
 #define MUSIC_MENU 0
 #define MUSIC_MAIN 1
@@ -63,7 +64,9 @@
 #define REWARD_TYPE_POTION 0
 #define REWARD_TYPE_TRINKET 1
 
-#define TRINKET_GLASSES 0
+#define TRINKET_FALLER 0
+#define TRINKET_MIRROR 1
+#define TRINKET_GLASSES 2
 
 extern int reset_stage[];
 extern int stage[];
@@ -112,12 +115,26 @@ typedef struct Str_Tetronimo{
 
 typedef struct Reward{
 
-    char* name;
+    char* name; 
+    char* tooltip; 
 
     int type;
     int subtype;
 
+    Texture2D *textrue;
+
 } Reward;
+
+typedef struct Trinket{
+
+    char* name; 
+
+    int charge;
+    int current_charge;
+
+    Texture2D *textrue;
+
+} Trinket;
 
 typedef struct Enemy{
     
@@ -257,6 +274,7 @@ void PrintTetronimo(Tetronimo *t);
 
 typedef struct Clickable{
 
+    char * name;
     int x;
     int y;
     int w;
@@ -267,6 +285,7 @@ typedef struct Clickable{
     Texture2D* texture;
 
     int(*Clicked)(int utils);
+    void(*Hover)();
 
 } Clickable;
 
