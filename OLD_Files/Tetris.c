@@ -251,7 +251,7 @@ int tetronimo_I_270 [] =
 #pragma endregion
 
 
-const int *tetromino_types[7][4] =
+const int *tetronimo_types[7][4] =
 {
     {tetronimo_L_0, tetronimo_L_90, tetronimo_L_180, tetronimo_L_270},
     {tetronimo_J_0, tetronimo_J_90, tetronimo_J_180, tetronimo_J_270},
@@ -389,7 +389,7 @@ int main(int argc, char** argv, char** environ)
             startOffSetY,
             currentPosX,
             currentPosY,
-            tetromino_types[currentTetrominoSize][currentTetrominoRotation]
+            tetronimo_types[currentTetrominoSize][currentTetrominoRotation]
         );
         EndDrawing();
     }

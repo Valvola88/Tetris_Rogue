@@ -101,7 +101,7 @@ void TestWallKickRotateLeft(Tetronimo *myTetronimo, const int nextTetronimoRotat
             if (!CheckRotateCollision(
                 myTetronimo->x + table_to_look[i],
                 myTetronimo->y + table_to_look[i+ 1],
-                tetromino_types[myTetronimo->shape][nextTetronimoRotation]
+                tetronimo_types[myTetronimo->shape][nextTetronimoRotation]
             ))
             {
                 myTetronimo->x += table_to_look[i];
@@ -148,7 +148,7 @@ void TestWallKickRotateRight(Tetronimo *myTetronimo, const int nextTetronimoRota
             if (!CheckRotateCollision(
                 myTetronimo->x + table_to_look[i],
                 myTetronimo->y + table_to_look[i+ 1],
-                tetromino_types[myTetronimo->shape][nextTetronimoRotation]
+                tetronimo_types[myTetronimo->shape][nextTetronimoRotation]
             ))
             {
                 myTetronimo->x += table_to_look[i];

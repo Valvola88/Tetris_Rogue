@@ -13,11 +13,14 @@ Clickable rewards_buttons[MAX_POSSIBLE_POTION];
 Character main_character;
 Enemy current_enemy;
 
+Trinket current_active_trinket;
+
 int visible_potions = 3;
 int visible_rewards_number = 3;
 
 extern Reward REWARDS[];
 extern Texture2D PowerUps[];
+extern Trinket TemplateTrinkets[];
 extern int EnemiesHealth[];
 extern int EnemiesTimer[];
 
@@ -53,7 +56,7 @@ void UsePotion(int potion_number)
         return;
 
 
-    if(!CheckRotateCollision(mainTetronimo.x, mainTetronimo.y, tetromino_types[potions[potion_number]][mainTetronimo.rotation]))
+    if(!CheckRotateCollision(mainTetronimo.x, mainTetronimo.y, tetronimo_types[potions[potion_number]][mainTetronimo.rotation]))
     {
         DestroyTetronimoEffect(&mainTetronimo);
         SetTetronimoShape(&mainTetronimo, potions[potion_number]);
@@ -89,6 +92,11 @@ void RogueLineScored()
     {
         showRewardBox = 1;
     }
+
+    if (current_active_trinket.current_charge < current_active_trinket.charge)
+    {
+        current_active_trinket.current_charge++;
+    }
 }
 
 void RogueTetrisScored()
@@ -118,6 +126,15 @@ void RogueInputTick(const float delta_time)
     {
         UsePotion(4);
     }
+
+    if (IsKeyPressed(KEY_LEFT_SHIFT) &&
+        current_active_trinket.current_charge == current_active_trinket.charge &&
+        current_active_trinket.Activate)
+    {
+        printf("ACtoiva");
+        if(current_active_trinket.Activate())
+            current_active_trinket.current_charge = 0;
+    }
 }
 
 void RogueDraw()
@@ -127,6 +144,21 @@ void RogueDraw()
         if (potions[i] > -1)
         {
             TetrisDrawPowerUp(potions[i],16 + ((48 + 2) * i ),450);
+        }
+    }
+
+    if(current_active_trinket.textrue)
+    {
+        DrawTexture(*current_active_trinket.textrue, 300 ,450, WHITE);
+        int fract = 48 / current_active_trinket.charge;
+        for(int i = 0; i < current_active_trinket.charge; i++)
+        {
+            if (i < current_active_trinket.current_charge)
+                DrawRectangle(280, 450 + fract * i, 10, fract, GREEN);
+            else
+                DrawRectangle(280, 450 + fract * i, 10, fract, WHITE);
+            
+            DrawRectangleLines(280, 450 + fract * i, 10, fract, BLACK);
         }
     }
 
@@ -176,56 +208,6 @@ int AddPotion(int potion_number){
     return 0;
 }
 
-// char *RewardGetNameAndTexture(int type, int subtype, Texture2D **text)
-// {
-//     char *name = "NOT VALID";
-
-//     switch (type)
-//     {
-//     case REWARD_TYPE_POTION:
-//         switch (subtype)
-//         {
-//         case TETRONIMO_L:
-//             name = "Potion L";
-//             *text = &PowerUps[0];
-//             break;
-//         case TETRONIMO_J:
-//             name = "Potion J";
-//             *text = &PowerUps[1];
-//             break;
-//         case TETRONIMO_S:
-//             name = "Potion S";
-//             *text = &PowerUps[2];
-//             break;
-//         case TETRONIMO_Z:
-//             name = "Potion Z";
-//             *text = &PowerUps[3];
-//             break;
-//         case TETRONIMO_O:
-//             name = "Potion O";
-//             *text = &PowerUps[4];
-//             break;
-//         case TETRONIMO_T:
-//             name = "Potion T";
-//             *text = &PowerUps[5];
-//             break;
-//         case TETRONIMO_I:
-//             name = "Potion I";
-//             *text = &PowerUps[6];
-//             break;
-//         default:
-//             break;
-//         }
-
-//         break;
-    
-//     default:
-//         break;
-//     }
-//     printf("\nn:%s", name);
-//     return name;
-// }
-
 void RogueRewardTick(const float delta_time)
 {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
@@ -246,7 +228,12 @@ void RogueRewardTick(const float delta_time)
     } 
 }
 
+int SetActiveTrinket(int trinket)
+{
+    current_active_trinket = TemplateTrinkets[trinket];
 
+    return 1;
+}
 
 void SetReward( int number,int reward, int x, int y)
 {
@@ -264,6 +251,10 @@ void SetReward( int number,int reward, int x, int y)
     {
         case REWARD_TYPE_POTION:
             rewards_buttons[number].Clicked = AddPotion;
+            rewards_buttons[number].utils_value = current_rewards[number]->subtype;
+            break;
+        case REWARD_TYPE_TRINKET:
+            rewards_buttons[number].Clicked = SetActiveTrinket;
             rewards_buttons[number].utils_value = current_rewards[number]->subtype;
             break;
     
@@ -295,6 +286,8 @@ void SetRandomRewards(int amount)
         );
 
     }
+
+    SetReward(0,7,100,150);
 }
 
 void RogueRewardBegin()

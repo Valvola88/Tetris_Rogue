@@ -12,7 +12,7 @@ const int startOffSetY = START_OFFSET_Y;
 const int startPosX = STAGE_WIDTH / 2;
 const int startPosY = 1;
 const float startMoveTileDownTimer = 1.f;
-const float startMoveTimeHoldTime = .5f;
+const float startMoveTimeHoldTime = .25f;
 const float moveDownHoldDelay= .1f;
 const int visiblePieces = 5;
 
@@ -26,6 +26,7 @@ int alreadySwappedOnce;
 
 int closeGame;
 int hasToSpawnNewTetronimo;
+int destroyCurrentTetronimo = 0;
 
 int score;
 char str_score[8];
@@ -75,12 +76,21 @@ int showRewardBox = 0;
 
 #pragma endregion
 
-int currentPowerUpId = 0;
+#pragma region utils
+int GetXPositionFromCellX(int x)
+{
+    return startOffSetX + TILE_SIZE * x; 
+}
+
+int GetYPositionFromCellY(int y)
+{
+    return startOffSetY + TILE_SIZE * y;
+}
 
 void SetTetronimoRotation(Tetronimo *tetro, const int rotation)
 {
     tetro->rotation = rotation;
-    tetro->current_shape = (int *)tetromino_types[tetro->shape][rotation];
+    tetro->current_shape = (int *)tetronimo_types[tetro->shape][rotation];
 }
 
 int SetTetronimoShape(Tetronimo *tetro, const int shape)
@@ -89,13 +99,13 @@ int SetTetronimoShape(Tetronimo *tetro, const int shape)
 
     printf("X: %d, Y: %d", tetro->x, tetro->y);
 
-    if (CheckRotateCollision(tetro->x, tetro->y, tetromino_types[shape][tetro->rotation]))
+    if (CheckRotateCollision(tetro->x, tetro->y, tetronimo_types[shape][tetro->rotation]))
         return 0;
 
     tetro->shape = shape;
     tetro->color = colorTypes[shape + 1];
 
-    tetro->current_shape = (int *)tetromino_types[tetro->shape][tetro->rotation];
+    tetro->current_shape = (int *)tetronimo_types[tetro->shape][tetro->rotation];
 
     return 1;
 }
@@ -175,6 +185,107 @@ void UpdateStrings()
 
 }
 
+void UpdateScore(int add)
+{
+    score += add * multiplier;
+}
+
+int CreateBlockUnder(int position)
+{
+    for(int iy = 0; iy < STAGE_HEIGHT - 2; iy++)
+    {
+        for(int ix = 1; ix < STAGE_WIDTH -1; ix++)
+        {
+            int offset = iy * STAGE_WIDTH + ix;
+
+            stage[offset] = stage[offset + STAGE_WIDTH];
+        }
+    }
+
+    for(int ix = 1; ix < STAGE_WIDTH - 1; ix++)
+    {
+        int offset = (STAGE_HEIGHT - 2) * STAGE_WIDTH + ix;
+        if (ix == position)
+        {
+            stage[offset] = 0;
+            continue;
+        }
+
+        stage[offset] = 11;
+    }
+    return 0;
+}
+
+int FallTetronimo()
+{
+    for(int i = 0; i < 8; i+= 2)
+    {
+        int x = mainTetronimo.x + mainTetronimo.current_shape[i];
+        int y = mainTetronimo.y + mainTetronimo.current_shape[i + 1];
+        
+
+        printf("\nStage %d -> ", y * STAGE_WIDTH + x);
+
+        while (stage[(y + 1) * STAGE_WIDTH + x] == 0)
+        {
+            y++;
+        }
+        
+
+        stage[y * STAGE_WIDTH + x] = mainTetronimo.shape + 1;
+    }
+
+    printf("\n");
+    hasToSpawnNewTetronimo = 1;
+    destroyCurrentTetronimo = 1;
+    return 1;
+}
+
+int MirrorMainTetronimo()
+{
+    int new_rotation = mainTetronimo.rotation;
+    int new_shape = mainTetronimo.shape;
+
+    switch (new_shape)
+    {
+    case TETRONIMO_I:
+    case TETRONIMO_T:
+    case TETRONIMO_O:
+        new_rotation = (new_rotation + 2) % 4;
+        break;
+
+    case TETRONIMO_J:
+        new_shape = TETRONIMO_L;
+        break;
+    case TETRONIMO_L:
+        new_shape = TETRONIMO_J;
+        break;
+        
+    case TETRONIMO_S:
+        new_shape = TETRONIMO_Z;
+        break;
+    case TETRONIMO_Z:
+        new_shape = TETRONIMO_S;
+        break;
+    
+    default:
+        break;
+    }
+
+    if(!CheckRotateCollision(mainTetronimo.x, mainTetronimo.y, tetronimo_types[new_shape][new_rotation]))
+    {
+        SetTetronimoRotation(&mainTetronimo, new_rotation);
+        SetTetronimoShape(&mainTetronimo, new_shape);
+        return 1;
+    }
+    return 0;
+}
+
+#pragma endregion
+
+
+
+#pragma region Main
 void MainBeginPlay()
 {
     RogueBegin();
@@ -235,37 +346,6 @@ void MainBeginPlay()
     //PrintTetronimo(&mainTetronimo);
 }
 
-void UpdateScore(int add)
-{
-    score += add * multiplier;
-}
-
-int CreateBlockUnder(int position)
-{
-    for(int iy = 0; iy < STAGE_HEIGHT - 2; iy++)
-    {
-        for(int ix = 1; ix < STAGE_WIDTH -1; ix++)
-        {
-            int offset = iy * STAGE_WIDTH + ix;
-
-            stage[offset] = stage[offset + STAGE_WIDTH];
-        }
-    }
-
-    for(int ix = 1; ix < STAGE_WIDTH - 1; ix++)
-    {
-        int offset = (STAGE_HEIGHT - 2) * STAGE_WIDTH + ix;
-        if (ix == position)
-        {
-            stage[offset] = 0;
-            continue;
-        }
-
-        stage[offset] = 11;
-    }
-    return 0;
-}
-
 void MainTick(const float delta_time)
 {
 
@@ -318,7 +398,7 @@ void MainTick(const float delta_time)
             if (!CheckRotateCollision(
                 mainTetronimo.x,
                 mainTetronimo.y,
-                tetromino_types[mainTetronimo.shape][nextTetronimoRotation]
+                tetronimo_types[mainTetronimo.shape][nextTetronimoRotation]
             ))
             {
                 SetTetronimoRotation(&mainTetronimo,nextTetronimoRotation);         
@@ -335,7 +415,7 @@ void MainTick(const float delta_time)
             if (!CheckRotateCollision(
                 mainTetronimo.x,
                 mainTetronimo.y,
-                tetromino_types[mainTetronimo.shape][nextTetronimoRotation]
+                tetronimo_types[mainTetronimo.shape][nextTetronimoRotation]
             )){
                 SetTetronimoRotation(&mainTetronimo,nextTetronimoRotation);    
                 //PrintTetronimo(&mainTetronimo);        
@@ -352,7 +432,7 @@ void MainTick(const float delta_time)
                 mainTetronimo.x,
                 mainTetronimo.y,
                 1,
-                tetromino_types[mainTetronimo.shape][mainTetronimo.rotation]))
+                tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation]))
                 {
                 mainTetronimo.x++;
                 TetrisPlaySfx(SFX_MOVE);
@@ -365,7 +445,7 @@ void MainTick(const float delta_time)
                 mainTetronimo.x,
                 mainTetronimo.y,
                 -1,
-                tetromino_types[mainTetronimo.shape][mainTetronimo.rotation]))
+                tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation]))
                 {
                     TetrisPlaySfx(SFX_MOVE);
                     mainTetronimo.x--;
@@ -374,7 +454,7 @@ void MainTick(const float delta_time)
 
         if(IsKeyPressed(KEY_UP))
         {
-            while (!CheckDownCollision(mainTetronimo.x, mainTetronimo.y, tetromino_types[mainTetronimo.shape][mainTetronimo.rotation]))
+            while (!CheckDownCollision(mainTetronimo.x, mainTetronimo.y, tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation]))
             {
                 mainTetronimo.y++;
                 timeToMoveDown = currentMoveTileDownTimer;
@@ -404,7 +484,7 @@ void MainTick(const float delta_time)
                     currentMoveTimeHoldTime = moveDownHoldDelay;
             }
 
-            if (!CheckDownCollision(mainTetronimo.x, mainTetronimo.y, tetromino_types[mainTetronimo.shape][mainTetronimo.rotation]))
+            if (!CheckDownCollision(mainTetronimo.x, mainTetronimo.y, tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation]))
             {
                 mainTetronimo.y++;
                 TetrisPlaySfx(SFX_MOVE);
@@ -419,15 +499,17 @@ void MainTick(const float delta_time)
         }
     #pragma endregion
 
+    RogueInputTick(delta_time);
+
     if(hasToSpawnNewTetronimo)
     {
 
         hasToSpawnNewTetronimo = 0;
-
+    
         int resetMultiplier = 1;
         
-        const int *currTetronimo = tetromino_types[mainTetronimo.shape][mainTetronimo.rotation];
-
+        const int *currTetronimo = tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation];
+        if (!destroyCurrentTetronimo)
         //Set tetronimo
         for (int i = 0; i < 8 ; i += 2){
             const int cellToPlace = (mainTetronimo.y + currTetronimo[i + 1]) * STAGE_WIDTH + mainTetronimo.x + currTetronimo[i];
@@ -446,6 +528,7 @@ void MainTick(const float delta_time)
             }
         }
 
+        destroyCurrentTetronimo = 0;
         //Check to delete Lines
         const int current_line_deleted = DeleteLines();
 
@@ -522,7 +605,7 @@ void MainTick(const float delta_time)
         if (CheckRotateCollision(
             mainTetronimo.x,
             mainTetronimo.y,
-            tetromino_types[mainTetronimo.shape][0]
+            tetronimo_types[mainTetronimo.shape][0]
             ))
             {
                 //GAME OVER
@@ -548,7 +631,7 @@ void MainTick(const float delta_time)
         
     }
 
-    RogueInputTick(delta_time);
+    
 }
 
 void MainDraw()
@@ -577,12 +660,12 @@ void MainDraw()
         );
 
         //Preview Piece
-        preview_y = GetLowestPiecePosition(mainTetronimo.x,mainTetronimo.y,tetromino_types[mainTetronimo.shape][mainTetronimo.rotation]);
+        preview_y = GetLowestPiecePosition(mainTetronimo.x,mainTetronimo.y,tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation]);
 
         DrawTetromino(
             mainTetronimo.x,
             preview_y,
-            tetromino_types[mainTetronimo.shape][mainTetronimo.rotation],
+            tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation],
             colorTypes[8]
         );
 
@@ -594,7 +677,7 @@ void MainDraw()
             DrawTetromino(
             -4,
             1,
-            tetromino_types[holdTetrominoType][0],
+            tetronimo_types[holdTetrominoType][0],
             colorTypes[holdTetrominoType + 1]
         );
         }
@@ -606,7 +689,7 @@ void MainDraw()
             DrawTetromino(
             16,
             2 + 4 * i,
-            tetromino_types[nextTetronimo][0],
+            tetronimo_types[nextTetronimo][0],
             colorTypes[nextTetronimo + 1]);
         }
 
@@ -680,7 +763,9 @@ void MainDeleteEffectTick(const float delta_time)
     }
     oldDeletedSquare = squareToChange;
 }
+#pragma endregion
 
+#pragma region Game Over
 void MainOverlayDraw()
 {
     DrawRectangle(64,64,384, 150, WHITE);
@@ -702,16 +787,8 @@ void WaitForSpaceTick(const float delta_time)
         }
     }
 }
+#pragma endregion
 
-int GetXPositionFromCellX(int x)
-{
-    return startOffSetX + TILE_SIZE * x; 
-}
-
-int GetYPositionFromCellY(int y)
-{
-    return startOffSetY + TILE_SIZE * y;
-}
 
 int main(int argc, char** argv)
 {

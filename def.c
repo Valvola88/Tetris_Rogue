@@ -312,7 +312,7 @@ int tetronimo_I_270 [] =
 #pragma endregion
 
 
-const int *tetromino_types[7][4] =
+const int *tetronimo_types[7][4] =
 {
     {tetronimo_L_0, tetronimo_L_90, tetronimo_L_180, tetronimo_L_270},
     {tetronimo_J_0, tetronimo_J_90, tetronimo_J_180, tetronimo_J_270},
@@ -347,6 +347,23 @@ const Reward REWARDS[]=
     {"POTION I", "\nCHANGE YOUR TETRONIMO INTO I SHAPE", REWARD_TYPE_POTION, TETRONIMO_I, &PowerUps[TETRONIMO_I]},
     {"FALLER", "\nCOLLAPSE YOUR TETRONIMO\nCHARGE 4", REWARD_TYPE_TRINKET, TRINKET_FALLER, &PowerUps[7]},
     {"MIRROR", "\nMIRRORS YOUR TETRONIMO\nCHARGE 2", REWARD_TYPE_TRINKET, TRINKET_MIRROR, &PowerUps[8]},
+};
+
+// typedef struct Trinket{
+
+//     char* name; 
+
+//     int charge;
+//     int current_charge;
+
+//     Texture2D *textrue;
+
+// } Trinket;
+
+const Trinket TemplateTrinkets[]=
+{
+    {"FALLER", 4, 4, &PowerUps[7], FallTetronimo},
+    {"MIRROR", 2, 2, &PowerUps[8], MirrorMainTetronimo}
 };
 
 const int EnemiesHealth[ENEMY_LAST] =

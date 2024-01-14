@@ -1,8 +1,13 @@
+#ifndef _TETRIS_H
+#define _TETRIS_H
+
 #include "raylib.h"
 #include "stdlib.h"
 #include "string.h"
 #include "stdio.h"
 #include "time.h"
+
+#pragma region Defines
 
 #define WINDOW_HEIGHT 512
 #define WINDOW_WIDTH 512
@@ -68,12 +73,18 @@
 #define TRINKET_MIRROR 1
 #define TRINKET_GLASSES 2
 
+#pragma endregion
+
+#pragma region Extern
 extern int reset_stage[];
 extern int stage[];
 extern const int* wall_kick_offsets[8];
 extern const int* wall_kick_I_offsets[8];
 extern const Color colorTypes[20];
-extern const int *tetromino_types[7][4];
+extern const int *tetronimo_types[7][4];
+#pragma endregion
+
+#pragma region Struct
 
 struct game_loop
 {
@@ -83,7 +94,6 @@ struct game_loop
     void(*post_draw)();
     int play_begin;
 };
-
 
 typedef struct Tile
 {
@@ -134,6 +144,8 @@ typedef struct Trinket{
 
     Texture2D *textrue;
 
+    int (*Activate)();
+
 } Trinket;
 
 typedef struct Enemy{
@@ -157,13 +169,27 @@ typedef struct Character{
 
 } Character;
 
+typedef struct Clickable{
+
+    char * name;
+    int x;
+    int y;
+    int w;
+    int h;
+
+    int utils_value;
+
+    Texture2D* texture;
+
+    int(*Clicked)(int utils);
+    void(*Hover)();
+
+} Clickable;
 
 extern struct game_loop current_game_loop;
 extern Character main_character;
 extern Enemy current_enemy;
 extern Tetronimo mainTetronimo;
-
-typedef struct Tile Tile;
 
 #pragma endregion
 
@@ -272,22 +298,8 @@ void SpawnNewTetronimo(Tetronimo *tetro, const int shape);
 int CreateBlockUnder(int position);
 void PrintTetronimo(Tetronimo *t);
 
-typedef struct Clickable{
-
-    char * name;
-    int x;
-    int y;
-    int w;
-    int h;
-
-    int utils_value;
-
-    Texture2D* texture;
-
-    int(*Clicked)(int utils);
-    void(*Hover)();
-
-} Clickable;
+int MirrorMainTetronimo();
+int FallTetronimo();
 
 int TetrisSetTextureClickable(Clickable *click, Texture2D *texture);
 int TetrisDrawClickable(Clickable *self);
@@ -295,3 +307,5 @@ int TetrisIsMouseInside(Clickable *self);
 int TetrisClick(Clickable* self);
 
 #pragma endregion
+
+#endif
