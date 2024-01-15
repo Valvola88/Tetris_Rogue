@@ -48,6 +48,7 @@ float speed;
 char str_speed[9];
 
 int nextPieces[VISIBLE_PIECES + 1];
+int visible_pieces = 2;
 
 int preview_y;
 
@@ -216,13 +217,38 @@ int CreateBlockUnder(int position)
     return 0;
 }
 
+int AddPlayerVisibleTetromino(int _)
+{
+    visible_pieces += 1;
+    if (visible_pieces >= 5)
+        visible_pieces = 5;
+    
+    return 1; 
+}
+
+int DestroyTetronimo()
+{
+    DestroyTetronimoEffect(&mainTetronimo);
+
+    hasToSpawnNewTetronimo = 1;
+    destroyCurrentTetronimo = 1;
+    return 1;
+}
+
 int FallTetronimo()
 {
     for(int i = 0; i < 8; i+= 2)
     {
+        if (i > 1)
+        {
+            if (mainTetronimo.current_shape[i] == mainTetronimo.current_shape[i - 2]
+                && mainTetronimo.current_shape[i + 1] == mainTetronimo.current_shape[i -1])
+                {
+                    continue;
+                }
+        }
         int x = mainTetronimo.x + mainTetronimo.current_shape[i];
         int y = mainTetronimo.y + mainTetronimo.current_shape[i + 1];
-        
 
         printf("\nStage %d -> ", y * STAGE_WIDTH + x);
 
@@ -248,11 +274,6 @@ int MirrorMainTetronimo()
 
     switch (new_shape)
     {
-    case TETRONIMO_I:
-    case TETRONIMO_T:
-    case TETRONIMO_O:
-        new_rotation = (new_rotation + 2) % 4;
-        break;
 
     case TETRONIMO_J:
         new_shape = TETRONIMO_L;
@@ -267,8 +288,9 @@ int MirrorMainTetronimo()
     case TETRONIMO_Z:
         new_shape = TETRONIMO_S;
         break;
-    
+        
     default:
+        new_rotation = (new_rotation + 2) % 4;
         break;
     }
 
@@ -666,7 +688,7 @@ void MainDraw()
             mainTetronimo.x,
             preview_y,
             tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation],
-            colorTypes[8]
+            colorTypes[18]
         );
 
         #pragma region other_pieces
@@ -683,7 +705,7 @@ void MainDraw()
         }
 
         //Next Pieces
-        for(int i = 0; i < 5; i++)
+        for(int i = 0; i < visible_pieces; i++)
         {
             int nextTetronimo = nextPieces[i];
             DrawTetromino(
@@ -758,7 +780,7 @@ void MainDeleteEffectTick(const float delta_time)
                 colorTypes[stage[offset + squareToChange]]);    
         }
 
-        stage[offset + squareToChange] = 8;
+        stage[offset + squareToChange] = 18;
         deletedLineCounter++;
     }
     oldDeletedSquare = squareToChange;

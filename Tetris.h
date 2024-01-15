@@ -77,6 +77,9 @@
 #define TETRONIMO_O 4
 #define TETRONIMO_T 5
 #define TETRONIMO_I 6
+#define TETRONIMO_SMALL_I 7
+#define TETRONIMO_SMALL_L 8
+#define TETRONIMO_SMALL_O 9
 
 #define ENEMY_SIMPLE 0
 #define ENEMY_ADVANCED 1
@@ -84,11 +87,17 @@
 #define ENEMY_LAST 3
 
 #define REWARD_TYPE_POTION 0
-#define REWARD_TYPE_TRINKET 1
+#define REWARD_TYPE_ACTIVE_TRINKET 1
+#define REWARD_TYPE_PASSIVE_TRINKET 2
 
-#define TRINKET_FALLER 0
-#define TRINKET_MIRROR 1
-#define TRINKET_GLASSES 2
+#define TRINKET_ACTIVE_FALLER 0
+#define TRINKET_ACTIVE_MIRROR 1
+#define TRINKET_ACTIVE_SHURIKEN 2
+#define TRINKET_ACTIVE_TRASH 3
+
+#define TRINKET_PASSIVE_GLOVE 0
+#define TRINKET_PASSIVE_GLASSES 1
+#define TRINKET_PASSIVE_TREASURE 2
 
 #pragma endregion
 
@@ -98,9 +107,11 @@ extern int stage[];
 extern const int* wall_kick_offsets[8];
 extern const int* wall_kick_I_offsets[8];
 extern const Color colorTypes[20];
-extern const int *tetronimo_types[7][4];
+extern const int *tetronimo_types[10][4];
 
 extern Texture2D GfxInputKeys[];
+extern Texture2D GfxActiveTrinket[];
+extern Texture2D GfxPassiveTrinket[];
 #pragma endregion
 
 #pragma region Struct
@@ -154,7 +165,7 @@ typedef struct Reward{
 
 } Reward;
 
-typedef struct Trinket{
+typedef struct ActiveTrinket{
 
     char* name; 
 
@@ -165,7 +176,18 @@ typedef struct Trinket{
 
     int (*Activate)();
 
-} Trinket;
+} ActiveTrinket;
+
+typedef struct PassiveTrinket{
+
+    char* name;
+
+    Texture2D *textrue;
+
+    int utils_value;
+    int (*OnPickup)(int utils);
+
+} PassiveTrinket;
 
 typedef struct Enemy{
     
@@ -197,6 +219,7 @@ typedef struct Clickable{
     int h;
 
     int utils_value;
+    float scale_dimension;
 
     Texture2D* texture;
 
@@ -297,7 +320,7 @@ int TetrisLoadImages();
 int TetrisLoadTexture(Texture2D *texture, char* path, float scale);
 int TetrisUnloadImages();
 
-void TetrisDrawPowerUp(const int pu,const int x,const int y);
+void TetrisDrawPowerUp(const int pu,const int x,const int y, float scale);
 
 void TestWallKickRotateLeft(Tetronimo *myTetronimo, const int nextTetronimoRotation);
 void TestWallKickRotateRight(Tetronimo *myTetronimo, const int nextTetronimoRotation);
@@ -317,8 +340,17 @@ void SpawnNewTetronimo(Tetronimo *tetro, const int shape);
 int CreateBlockUnder(int position);
 void PrintTetronimo(Tetronimo *t);
 
+
+//TRINKET ACTIVE
 int MirrorMainTetronimo();
 int FallTetronimo();
+int DestroyTetronimo();
+int RogueAttack();
+
+//TRINKET PASSIVE ON PICKUP
+int AddPlayerDamage(int damage);
+int AddPlayerVisibleReward(int _);
+int AddPlayerVisibleTetromino(int _);
 
 int TetrisSetTextureClickable(Clickable *click, Texture2D *texture);
 int TetrisDrawClickable(Clickable *self);

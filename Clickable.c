@@ -9,6 +9,7 @@ int TetrisSetTextureClickable(Clickable* click, Texture2D* texture)
     click->h = texture->height;
 
     click->utils_value = -1;
+    click->scale_dimension = 2;
 
     return 0;
 }
@@ -20,16 +21,18 @@ int TetrisDrawClickable(Clickable* self)
 
     if (self->name)
     {
-        DrawTextCentral(self->name, self->x + (self->w * .5f), self->y - 12, 10, BLACK);
+        DrawTextCentral(self->name, self->x + (self->w * self->scale_dimension * .5f), self->y - 12, 10, BLACK);
     }
 
+    Vector2 my_pos = {self->x, self->y};
     if (TetrisIsMouseInside(self))
     {
-        DrawTexture(*(self->texture), self->x, self->y, YELLOW);
+        DrawTextureEx(*(self->texture), my_pos, 0, self->scale_dimension, YELLOW);
     }
     else
-        DrawTexture(*(self->texture), self->x, self->y, WHITE);
-
+    {
+        DrawTextureEx(*(self->texture), my_pos, 0, self->scale_dimension, WHITE);
+    }
         return 0;
 }
 
@@ -49,7 +52,7 @@ int TetrisClick(Clickable* self)
 int TetrisIsMouseInside(Clickable* self)
 {
     return (GetMouseX() > self->x && 
-        GetMouseX() < self->x + self->w) 
+        GetMouseX() < self->x + self->w * self->scale_dimension) 
         && (GetMouseY() > self->y &&
-        GetMouseY() < self->y + self->h);
+        GetMouseY() < self->y + self->h * self->scale_dimension);
 }

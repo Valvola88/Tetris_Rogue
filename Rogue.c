@@ -3,6 +3,7 @@
 #define MAX_POSSIBLE_POTION 5
 #define MAX_POSSIBLE_VISIBLE_REWARDS 5
 
+#define POSSIBLE_REWARDS 16
 
 int potions[MAX_POSSIBLE_POTION] = {6,-1,-1, -1, -1};
 
@@ -13,20 +14,38 @@ Clickable rewards_buttons[MAX_POSSIBLE_POTION];
 Character main_character;
 Enemy current_enemy;
 
-Trinket current_active_trinket;
+ActiveTrinket current_active_trinket;
+
+PassiveTrinket *Inventory[100];
+int trinket_in_inventory;
 
 int visible_potions = 3;
 int visible_rewards_number = 3;
 
 extern Reward REWARDS[];
-extern Texture2D PowerUps[];
-extern Trinket TemplateTrinkets[];
+extern Texture2D Potions[];
+extern ActiveTrinket TemplateActiveTrinkets[];
+extern PassiveTrinket TemplatePassiveTrinkets[];
 extern int EnemiesHealth[];
 extern int EnemiesTimer[];
 
 extern int showRewardBox;
 
 int green_rect;
+
+int AddPlayerDamage(int damage)
+{
+    main_character.damage += damage;
+    return 1; 
+}
+
+int AddPlayerVisibleReward(int _)
+{
+    visible_rewards_number += 1;
+    if (visible_rewards_number >= 5)
+        visible_rewards_number = 5;
+    return 1; 
+}
 
 void SetEnemy(int enemy_type)
 {
@@ -43,6 +62,12 @@ void RogueBegin()
     TetrisLoadTexture(&(main_character.mytexture), "resources/texture/character.png", 2);
     TetrisLoadTexture(&(current_enemy.mytexture), "resources/texture/enemy.png", 2);
 
+    for(int i = 0; i < 100; i++)
+    {
+        Inventory[i] = NULL;
+    }
+
+    trinket_in_inventory = 0;
     green_rect = 100;
     SetEnemy(ENEMY_SIMPLE);
 }
@@ -69,6 +94,21 @@ void UsePotion(int potion_number)
     }
 }
 
+int RogueAttack()
+{
+
+    current_enemy.life -= main_character.damage;
+    float percent = ((float)(current_enemy.life) / (float)(EnemiesHealth[current_enemy.enemy_type]));
+    green_rect = 100 * percent;
+
+    if (current_enemy.life <= 0)
+    {
+        showRewardBox = 1;
+    }
+
+    return 1;
+}
+
 void RoguePiecePlaced()
 {
     current_enemy.action_timer--;
@@ -84,14 +124,7 @@ void RoguePiecePlaced()
 void RogueLineScored()
 {
     //printf("Attack");
-    current_enemy.life -= main_character.damage;
-    float percent = ((float)(current_enemy.life) / (float)(EnemiesHealth[current_enemy.enemy_type]));
-    green_rect = 100 * percent;
-
-    if (current_enemy.life <= 0)
-    {
-        showRewardBox = 1;
-    }
+    RogueAttack();
 
     if (current_active_trinket.current_charge < current_active_trinket.charge)
     {
@@ -143,7 +176,7 @@ void RogueDraw()
     {
         if (potions[i] > -1)
         {
-            TetrisDrawPowerUp(potions[i],16 + ((48 + 2) * i ),450);
+            TetrisDrawPowerUp(potions[i],16 + ((48 + 2) * i ),450, 2.f);
         }
     }
 
@@ -230,9 +263,19 @@ void RogueRewardTick(const float delta_time)
 
 int SetActiveTrinket(int trinket)
 {
-    current_active_trinket = TemplateTrinkets[trinket];
+    current_active_trinket = TemplateActiveTrinkets[trinket];
 
     return 1;
+}
+
+int AddPassiveTrinket(int trinket)
+{
+    Inventory[trinket_in_inventory] = &TemplatePassiveTrinkets[trinket];
+
+    Inventory[trinket_in_inventory]->OnPickup(Inventory[trinket_in_inventory]->utils_value);
+    trinket_in_inventory++;
+
+   return 1;
 }
 
 void SetReward( int number,int reward, int x, int y)
@@ -253,8 +296,12 @@ void SetReward( int number,int reward, int x, int y)
             rewards_buttons[number].Clicked = AddPotion;
             rewards_buttons[number].utils_value = current_rewards[number]->subtype;
             break;
-        case REWARD_TYPE_TRINKET:
+        case REWARD_TYPE_ACTIVE_TRINKET:
             rewards_buttons[number].Clicked = SetActiveTrinket;
+            rewards_buttons[number].utils_value = current_rewards[number]->subtype;
+            break;
+        case REWARD_TYPE_PASSIVE_TRINKET:
+            rewards_buttons[number].Clicked = AddPassiveTrinket;
             rewards_buttons[number].utils_value = current_rewards[number]->subtype;
             break;
     
@@ -274,20 +321,18 @@ void SetRandomRewards(int amount)
     {
         int tmpx = 100 + (512 - 200 - REWARD_SIZE) * ((float)i / (float)(amount - 1));
 
-        int reward = GetRandomValue(0,8);
+        int reward = GetRandomValue(0, POSSIBLE_REWARDS);
 
         Texture2D *text = NULL;
 
-        // SetReward(
-        //     i,
-        //     reward,
-        //     tmpx,
-        //     150
-        // );
+        SetReward(
+            i,
+            reward,
+            tmpx,
+            150
+        );
 
     }
-
-    SetReward(0,7,100,150);
 }
 
 void RogueRewardBegin()
@@ -307,7 +352,7 @@ void RogueRewardBegin()
     //     i,
     //     100 + 100 * i,
     //     150,
-    //     &PowerUps[i]
+    //     &Potions[i]
     // );
     // rewards[1].name = "J Potion";
     // rewards[1].type = REWARD_TYPE_POTION;
