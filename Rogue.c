@@ -278,12 +278,12 @@ void SetRandomRewards(int amount)
 
         Texture2D *text = NULL;
 
-        SetReward(
-            i,
-            reward,
-            tmpx,
-            150
-        );
+        // SetReward(
+        //     i,
+        //     reward,
+        //     tmpx,
+        //     150
+        // );
 
     }
 

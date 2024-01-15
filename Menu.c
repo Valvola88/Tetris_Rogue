@@ -28,16 +28,61 @@ void MainMenuTick(const float delta_time)
     {
         current_game_loop.begin_play = MainBeginPlay;
     }
+
+
 }
 
 void MainMenuDraw()
 {
-    DrawTextCentral("TETRIS", 256, 100, 100, WHITE);
-    DrawTextCentral("Press SPACE to rogue", 256, 200, 32, WHITE);
+    DrawTextCentral("TETRIS", 256, 64, 100, WHITE);
+    DrawTextCentral("Press SPACE to rogue", 256, 160, 32, WHITE);
     
+    Vector2 position;
+    position.x = 100;
+    position.y = 230;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_W], position, 0, 3, WHITE);
+    position.x -= 28;
+    position.y += 50;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_A], position, 0, 3, WHITE);
+    position.x+= 50;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_S], position, 0, 3, WHITE);
+    position.x+= 50;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_D], position, 0, 3, WHITE);
+    DrawTextCentral("Move", position.x - 50 + 24, position.y + 52, 30, WHITE);
+
+    position.x = 64;
+    position.y += 100;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_1], position, 0, 3, WHITE);
+    position.x+= 50;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_2], position, 0, 3, WHITE);
+    position.x+= 50;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_3], position, 0, 3, WHITE);
+    DrawTextCentral("Use Potion", position.x - 50 + 24, position.y + 52, 30, WHITE);
+
+
+    position.x = 300;
+    position.y = 210;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_Q], position, 0, 3, WHITE);
+    position.x += 50;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_E], position, 0, 3, WHITE);
+    DrawTextCentral("Rotate", position.x, position.y + 52, 30, WHITE);
+
+    position.y += 92;
+    position.x -= 25;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_SPACE], position, 0, 3, WHITE);
+    DrawTextCentral("Store", position.x + 24, position.y + 52, 30, WHITE);
+
+    position.y += 92;
+    position.x -= 25;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_LEFT_SHIFT_LT], position, 0, 3, WHITE);
+    position.x += 48;
+    DrawTextureEx(GfxInputKeys[GFX_KEY_LEFT_SHIFT_RT], position, 0, 3, WHITE);
+    DrawTextCentral("Activate", position.x, position.y + 52, 30, WHITE);
+
+
     if (max_score)
     {
-        DrawTextCentral((char *)TextFormat("Max Score: %d", max_score), 256,300,40,WHITE);
+        DrawTextCentral((char *)TextFormat("Max Score: %d", max_score), 256,20,40,WHITE);
     }
 }
 

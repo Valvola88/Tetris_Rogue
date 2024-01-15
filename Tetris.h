@@ -41,6 +41,23 @@
 #define SFX_ERROR 9
 #define SFX_LAST 10
 
+
+#define GFX_KEY_1 0
+#define GFX_KEY_2 1
+#define GFX_KEY_3 2
+#define GFX_KEY_4 3
+#define GFX_KEY_5 4
+#define GFX_KEY_Q 5
+#define GFX_KEY_W 6
+#define GFX_KEY_E 7
+#define GFX_KEY_SPACE 8
+#define GFX_KEY_A 9
+#define GFX_KEY_S 10
+#define GFX_KEY_D 11
+#define GFX_KEY_LEFT_SHIFT_LT 12
+#define GFX_KEY_LEFT_SHIFT_RT 13
+#define GFX_KEY_LAST 14
+
 #define STAGE_DIMENSION 264
 
 #define WALLKICK_0_TO_90 0
@@ -82,6 +99,8 @@ extern const int* wall_kick_offsets[8];
 extern const int* wall_kick_I_offsets[8];
 extern const Color colorTypes[20];
 extern const int *tetronimo_types[7][4];
+
+extern Texture2D GfxInputKeys[];
 #pragma endregion
 
 #pragma region Struct
