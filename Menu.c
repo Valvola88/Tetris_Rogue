@@ -23,6 +23,14 @@ void MainMenuTick(const float delta_time)
     {
         SpawnTile(250,250,0,RED);
     }
+    if (IsKeyPressed(KEY_A))
+    {
+        Vector2 v = {
+            GetRandomValue(-20,20),
+            GetRandomValue(-20,20)
+            };
+        ShoutStringExtra("HELLO!", 512/2, 512/2,2, 40, YELLOW, v,GetRandomValue(-20,20), EFFECT_COLOR_RANDOM);
+    }
 
     if (IsKeyPressed(KEY_SPACE))
     {
@@ -84,6 +92,8 @@ void MainMenuDraw()
     {
         DrawTextCentral((char *)TextFormat("Max Score: %d", max_score), 256,20,40,WHITE);
     }
+
+    DrawRectangle(256,256,2,2,BLUE);
 }
 
 void EndMenuBeginPlay()

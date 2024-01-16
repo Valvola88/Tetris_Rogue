@@ -69,7 +69,7 @@ int GetLowestPiecePosition(
 
 }
 
-void TestWallKickRotateLeft(Tetronimo *myTetronimo, const int nextTetronimoRotation)
+void TestWallKickRotateLeft(Tetromino *myTetronimo, const int nextTetronimoRotation)
 {
     int test_wall_kick;
     
@@ -116,7 +116,7 @@ void TestWallKickRotateLeft(Tetronimo *myTetronimo, const int nextTetronimoRotat
     return;  
 }
 
-void TestWallKickRotateRight(Tetronimo *myTetronimo, const int nextTetronimoRotation)
+void TestWallKickRotateRight(Tetromino *myTetronimo, const int nextTetronimoRotation)
 {
     int test_wall_kick;
     

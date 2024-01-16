@@ -313,7 +313,7 @@ int tetronimo_I_270 [] =
 };
 #pragma endregion
 
-#pragma region //I PIECE
+#pragma region //HALF I PIECE
 int tetronimo_SMALL_I_0 [] =
 {
     0,  0,
@@ -344,7 +344,7 @@ int tetronimo_SMALL_I_270 [] =
 };
 #pragma endregion
 
-#pragma region //I PIECE
+#pragma region //SMALL L PIECE
 int tetronimo_SMALL_L_0 [] =
 {
     0,  0,
@@ -375,7 +375,7 @@ int tetronimo_SMALL_L_270 [] =
 };
 #pragma endregion
 
-#pragma region //I PIECE
+#pragma region //TINY O PIECE
 int tetronimo_SMALL_O [] =
 {
     0, 0,
@@ -438,6 +438,7 @@ const Reward REWARDS[]=
     {"TOUGH GLOVE", "\nUPGRADES YOUR DAMAGE", REWARD_TYPE_PASSIVE_TRINKET, TRINKET_PASSIVE_GLOVE, &GfxPassiveTrinket[TRINKET_PASSIVE_GLOVE]},
     {"GLASSES", "\nSHOW AN EXTRA TETROMINO (MAX 5)", REWARD_TYPE_PASSIVE_TRINKET, TRINKET_PASSIVE_GLASSES, &GfxPassiveTrinket[TRINKET_PASSIVE_GLASSES]},
     {"TREASURE", "\nSHOW AN EXTRA REWARD (MAX 5)", REWARD_TYPE_PASSIVE_TRINKET, TRINKET_PASSIVE_TREASURE, &GfxPassiveTrinket[TRINKET_PASSIVE_TREASURE]},
+    {"FLASK", "\nADD A POTION SLOT (MAX 5)", REWARD_TYPE_PASSIVE_TRINKET, TRINKET_PASSIVE_FLASK, &GfxPassiveTrinket[TRINKET_PASSIVE_FLASK]},
 
 };
 
@@ -474,6 +475,7 @@ const PassiveTrinket TemplatePassiveTrinkets[] =
     {"TOUGH GLOVE", &GfxPassiveTrinket[0], 5, AddPlayerDamage},
     {"GLASSES", &GfxPassiveTrinket[1], 0, AddPlayerVisibleTetromino},
     {"TREASURE", &GfxPassiveTrinket[2], 0, AddPlayerVisibleReward},
+    {"FLASK", &GfxPassiveTrinket[3], 0, AddPlayerPotionSlot},
 };
 
 const int EnemiesHealth[ENEMY_LAST] =

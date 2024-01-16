@@ -16,13 +16,16 @@
 #define START_MOVE_TIME_HOLD_TIMER .5f
 #define MOVE_HOLD_DOWN_DELAY .1f
 #define VISIBLE_PIECES 5
-#define START_OFFSET_X WINDOW_WIDTH / 2 - STAGE_WIDTH / 2 * TILE_SIZE
-#define START_OFFSET_Y WINDOW_WIDTH / 2 - STAGE_HEIGHT / 2 * TILE_SIZE
+#define START_OFFSET_X 160
+#define START_OFFSET_Y 70
 #define STAGE_WIDTH 12
 #define STAGE_HEIGHT 22
 #define TILE_SIZE 16
 #define TETRONIMO_SIZE 4
 #define REWARD_SIZE 48
+
+
+
 
 #define MUSIC_MENU 0
 #define MUSIC_MAIN 1
@@ -56,7 +59,8 @@
 #define GFX_KEY_D 11
 #define GFX_KEY_LEFT_SHIFT_LT 12
 #define GFX_KEY_LEFT_SHIFT_RT 13
-#define GFX_KEY_LAST 14
+#define GFX_KEY_SHIFT 14
+#define GFX_KEY_LAST 15
 
 #define STAGE_DIMENSION 264
 
@@ -98,6 +102,11 @@
 #define TRINKET_PASSIVE_GLOVE 0
 #define TRINKET_PASSIVE_GLASSES 1
 #define TRINKET_PASSIVE_TREASURE 2
+#define TRINKET_PASSIVE_FLASK 3
+
+#define EFFECT_NORMAL 0
+#define EFFECT_COLOR_RANDOM 1
+#define EFFECT_RAINBOW 2
 
 #pragma endregion
 
@@ -151,7 +160,7 @@ typedef struct Str_Tetronimo{
     Color color;
     int powerUpTile;
 
-} Tetronimo;
+} Tetromino;
 
 typedef struct Reward{
 
@@ -231,7 +240,7 @@ typedef struct Clickable{
 extern struct game_loop current_game_loop;
 extern Character main_character;
 extern Enemy current_enemy;
-extern Tetronimo mainTetronimo;
+extern Tetromino mainTetronimo;
 
 #pragma endregion
 
@@ -270,7 +279,7 @@ int GetLowestPiecePosition(
     const int *tetronimo
 );
 
-void DrawTextCentral(char* str, int x,  int y, int fonst_size, Color color);
+void DrawTextCentral(const char* str, int x,  int y, int fonst_size, Color color);
 void FormatScore(char* score_array, int score);
 
 void EmptyBegin();
@@ -298,7 +307,9 @@ void EndMenuTick(const float delta_time);
 void EffectBegin();
 void EffectTick(const float delta_time);
 void EffectDraw();
-int DestroyTetronimoEffect(Tetronimo *tetronimo);
+int DestroyTetronimoEffect(Tetromino *tetronimo);
+void ShoutString(char* string, const int x, const int y, const float duration,const int fontSize, const Color color);
+void ShoutStringExtra(char* string, const int x, const int y, const float duration,const int fontSize, const Color color, const Vector2 velocity, const float rotation, const int colorEffect);
 
 
 void RogueBegin();
@@ -320,25 +331,37 @@ int TetrisLoadImages();
 int TetrisLoadTexture(Texture2D *texture, char* path, float scale);
 int TetrisUnloadImages();
 
-void TetrisDrawPowerUp(const int pu,const int x,const int y, float scale);
 
-void TestWallKickRotateLeft(Tetronimo *myTetronimo, const int nextTetronimoRotation);
-void TestWallKickRotateRight(Tetronimo *myTetronimo, const int nextTetronimoRotation);
+void TestWallKickRotateLeft(Tetromino *myTetronimo, const int nextTetronimoRotation);
+void TestWallKickRotateRight(Tetromino *myTetronimo, const int nextTetronimoRotation);
 
+
+#pragma region Draw Function
 void TetrisTileDraw(Tile *self);
+void TetrisDrawPowerUp(const int pu,const int x,const int y, float scale);
+void DrawTetrominoOnWhiteCentered(const int up_left_x, const int up_left_y, int tetromino_shape);
+void DrawTetrominoContainer(const int up_left_x, const int up_left_y, int tetromino_shape, const char* label);
+void DrawTetromino2(Tetromino *tetronimo);
 
-void DrawTetromino2(Tetronimo *tetronimo);
 void DrawTetromino(
+    const int tile_x,
+    const int tile_y,
+    const int *tetronimo,
+    const Color c);
+
+void DrawTetrominoAbsolute(
     const int start_x,
     const int start_y,
     const int *tetronimo,
     const Color c);
+#pragma endregion
 
-void SetTetronimoRotation(Tetronimo *tetro, const int rotation);
-int SetTetronimoShape(Tetronimo *tetro, const int shape);
-void SpawnNewTetronimo(Tetronimo *tetro, const int shape);
+
+void SetTetronimoRotation(Tetromino *tetro, const int rotation);
+int SetTetronimoShape(Tetromino *tetro, const int shape);
+void SpawnNewTetronimo(Tetromino *tetro, const int shape);
 int CreateBlockUnder(int position);
-void PrintTetronimo(Tetronimo *t);
+void PrintTetronimo(Tetromino *t);
 
 
 //TRINKET ACTIVE
@@ -350,6 +373,7 @@ int RogueAttack();
 //TRINKET PASSIVE ON PICKUP
 int AddPlayerDamage(int damage);
 int AddPlayerVisibleReward(int _);
+int AddPlayerPotionSlot(int _);
 int AddPlayerVisibleTetromino(int _);
 
 int TetrisSetTextureClickable(Clickable *click, Texture2D *texture);

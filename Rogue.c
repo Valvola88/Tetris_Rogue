@@ -19,7 +19,7 @@ ActiveTrinket current_active_trinket;
 PassiveTrinket *Inventory[100];
 int trinket_in_inventory;
 
-int visible_potions = 3;
+int visible_potions_slot = 3;
 int visible_rewards_number = 3;
 
 extern Reward REWARDS[];
@@ -36,6 +36,14 @@ int green_rect;
 int AddPlayerDamage(int damage)
 {
     main_character.damage += damage;
+    return 1; 
+}
+
+int AddPlayerPotionSlot(int _)
+{
+    visible_potions_slot += 1;
+    if (visible_rewards_number >= 5)
+        visible_rewards_number = 5;
     return 1; 
 }
 
@@ -74,7 +82,7 @@ void RogueBegin()
 
 void UsePotion(int potion_number)
 {
-    if (potion_number >= visible_potions)
+    if (potion_number >= visible_potions_slot)
         return;
 
     if (potions[potion_number] < 0)
@@ -172,27 +180,94 @@ void RogueInputTick(const float delta_time)
 
 void RogueDraw()
 {
-    for(int i = 0; i< visible_potions; i++)
+    int begin_x = 12;
+    int begin_y = 444;
+
+    //POTIONS
+    for(int i = 0; i< visible_potions_slot; i++)
     {
+        DrawRectangleLines(begin_x, begin_y, 56, 56, BLACK);
+        
         if (potions[i] > -1)
         {
-            TetrisDrawPowerUp(potions[i],16 + ((48 + 2) * i ),450, 2.f);
+            TetrisDrawPowerUp(potions[i],begin_x + 4, begin_y + 4, 2.f);
         }
+
+        DrawRectangle(begin_x - 4, begin_y + 43, 17, 17, WHITE);
+        DrawRectangleLines(begin_x - 4, begin_y + 43, 17, 17, BLACK);
+
+        Color c = (potions[i] > -1) ? BLACK : GRAY;
+        DrawTextureEx(GfxInputKeys[i], (Vector2){begin_x - 3, begin_y + 44}, 0, 1, c);
+
+        begin_x += 66;
     }
 
-    if(current_active_trinket.textrue)
+    
+
+    
+    DrawRectangle(40,242,80,64,GRAY);
+    DrawRectangleLines(40,242,80,64,BLACK);
+
+    DrawRectangle(48,230, 64,16,WHITE);
+    DrawRectangleLines(48,230, 64,16,BLACK);
+
+    //KEY
+    DrawRectangle(11,258,32,32,WHITE);
+    DrawRectangleLines(11,258,32,32,BLACK);
+
+    DrawRectangle(115,250,10,48,GRAY);
+    DrawRectangleLines(115,249,10,48,BLACK);
+
+    if(!current_active_trinket.name)
     {
-        DrawTexture(*current_active_trinket.textrue, 300 ,450, WHITE);
+        DrawTextCentral("ACTIVE", 48 +32, 230 + 2, 12, BLACK);
+
+        DrawTextureEx(GfxInputKeys[GFX_KEY_SHIFT], (Vector2){12,259}, 0, 2, GRAY);
+    }
+    else
+    {
+        DrawTextCentral(current_active_trinket.name, 48 +32, 230 + 3, 10, BLACK);
+
+        DrawTextureEx(*current_active_trinket.textrue, (Vector2){56,250}, 0, 2, WHITE);
+
         int fract = 48 / current_active_trinket.charge;
+
         for(int i = 0; i < current_active_trinket.charge; i++)
         {
             if (i < current_active_trinket.current_charge)
-                DrawRectangle(280, 450 + fract * i, 10, fract, GREEN);
+                DrawRectangle(115, 249 + 48 - (fract * (1 + i)), 10, fract, GREEN);
             else
-                DrawRectangle(280, 450 + fract * i, 10, fract, WHITE);
+                DrawRectangle(115, 249 + 48 - (fract * (1 + i)), 10, fract, WHITE);
             
-            DrawRectangleLines(280, 450 + fract * i, 10, fract, BLACK);
+            DrawRectangleLines(115, 249 + 48 - (fract * (1 + i)), 10, fract, BLACK);
         }
+
+        Color c = (current_active_trinket.charge == current_active_trinket.current_charge) ? BLACK : GRAY;
+        DrawTextureEx(GfxInputKeys[GFX_KEY_SHIFT], (Vector2){12,259}, 0, 2, GRAY);
+    }
+
+    //DrawRectangle(18,336,124,72,WHITE);
+    DrawRectangleLines(18,336,124,72,BLACK);
+
+    DrawRectangle(32,326,96,16,WHITE);
+    DrawRectangleLines(32,326,96,16,BLACK);
+
+    DrawTextCentral("INVENTORY",34 + 48,328,12,BLACK);
+
+    int first = max(trinket_in_inventory - 8, 0);
+    int j = min(trinket_in_inventory - 1, 7);
+
+    for(int i = 0; i < 8; i++)
+    {
+        if (first + i >= trinket_in_inventory)
+            break;
+        
+        DrawTexture(*Inventory[first + i]->textrue, 26 + (j%4) * 28, 348 + (j/4) * 28, WHITE);
+        j--;
+    }
+    if (trinket_in_inventory > 8)
+    {
+        DrawTexture(GfxPassiveTrinket[15], 110, 376, WHITE);
     }
 
     DrawTexture(main_character.mytexture, 16,16, WHITE);
@@ -230,7 +305,7 @@ void RogueRewardDraw()
 
 int AddPotion(int potion_number){
 
-    for(int i = 0; i< visible_potions; i++)
+    for(int i = 0; i< visible_potions_slot; i++)
     {
         if (potions[i] > -1)
             continue;
@@ -333,6 +408,12 @@ void SetRandomRewards(int amount)
         );
 
     }
+    SetReward(
+    0,
+    17,
+    100,
+    150
+    );
 }
 
 void RogueRewardBegin()

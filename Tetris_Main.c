@@ -69,7 +69,7 @@ Tile powerUpsTile[10];
 char str_multiplier[9];
 char real_str_multiplier[4];
 
-Tetronimo mainTetronimo;
+Tetromino mainTetronimo;
 
 int oldDeletedSquare = -1;
 int showRewardBox = 0;
@@ -88,15 +88,17 @@ int GetYPositionFromCellY(int y)
     return startOffSetY + TILE_SIZE * y;
 }
 
-void SetTetronimoRotation(Tetronimo *tetro, const int rotation)
+void SetTetronimoRotation(Tetromino *tetro, const int rotation)
 {
     tetro->rotation = rotation;
     tetro->current_shape = (int *)tetronimo_types[tetro->shape][rotation];
 }
 
-int SetTetronimoShape(Tetronimo *tetro, const int shape)
+int SetTetronimoShape(Tetromino *tetro, const int shape)
 {
     if (!tetro) return 0;
+
+    if (shape < 0) return -1;
 
     printf("X: %d, Y: %d", tetro->x, tetro->y);
 
@@ -111,7 +113,7 @@ int SetTetronimoShape(Tetronimo *tetro, const int shape)
     return 1;
 }
 
-void SpawnNewTetronimo(Tetronimo *tetro, const int shape)
+void SpawnNewTetronimo(Tetromino *tetro, const int shape)
 {
     movablePowerUpTile.my_color = BLACK;
 
@@ -656,6 +658,9 @@ void MainTick(const float delta_time)
     
 }
 
+Tetromino dummyTetromino;
+Vector2 dummyVector;
+
 void MainDraw()
 {
 
@@ -681,6 +686,8 @@ void MainDraw()
             &mainTetronimo
         );
 
+        
+
         //Preview Piece
         preview_y = GetLowestPiecePosition(mainTetronimo.x,mainTetronimo.y,tetronimo_types[mainTetronimo.shape][mainTetronimo.rotation]);
 
@@ -693,26 +700,27 @@ void MainDraw()
 
         #pragma region other_pieces
 
-        //Hold Piece
-        if (holdTetrominoType>= 0)
-        {
-            DrawTetromino(
-            -4,
-            1,
-            tetronimo_types[holdTetrominoType][0],
-            colorTypes[holdTetrominoType + 1]
-        );
-        }
+        //HOLD PIECE
+        DrawTetrominoContainer(40, 154, holdTetrominoType, "HOLD");
+        dummyVector.x = 11;
+        dummyVector.y = 170;
+        DrawRectangleV(dummyVector, (Vector2){32,32}, WHITE);
+        DrawRectangleLines(dummyVector.x, dummyVector.y, 32, 32, BLACK);
+        dummyVector.x += 1;
+        dummyVector.y += 1;
+        Color c = alreadySwappedOnce ? GRAY : BLACK;
+        DrawTextureEx(GfxInputKeys[GFX_KEY_SPACE], dummyVector, 0, 2, c);
+
+        //NEXT PIECE
+        DrawTetrominoContainer(392, 144, nextPieces[0], "NEXT");
 
         //Next Pieces
-        for(int i = 0; i < visible_pieces; i++)
+        for(int i = 1; i < visible_pieces; i++)
         {
-            int nextTetronimo = nextPieces[i];
-            DrawTetromino(
-            16,
-            2 + 4 * i,
-            tetronimo_types[nextTetronimo][0],
-            colorTypes[nextTetronimo + 1]);
+            DrawTetrominoOnWhiteCentered(
+            400,
+            216 + 56 * (i - 1),
+            nextPieces[i]);
         }
 
         #pragma endregion
@@ -720,11 +728,11 @@ void MainDraw()
         //TEXT and Test Text
         //FormatScore(score_array, score);
 
-        DrawText("Score:", 16, 240, 20, WHITE);
-        DrawText(str_score, 16, 260, 20, WHITE);
-        DrawText(TextFormat("Level: %i", visible_level), 16, 300, 20, WHITE);
+        DrawText("Score:", 116, 15, 20, WHITE);
+        DrawText(str_score, 116, 35, 20, WHITE);
+        //DrawText(TextFormat("Level: %i", visible_level), 16, 300, 20, WHITE);
         //DrawText(str_visible_level, 16 + MeasureText("Level: ",20), 300, 20, WHITE);
-        DrawText(TextFormat("Multiplier: %s", real_str_multiplier), 16 , 340, 20, WHITE);
+        //DrawText(TextFormat("Multiplier: %s", real_str_multiplier), 16 , 340, 20, WHITE);
         //DrawText(str_lines_deleted, 32, 400, 20, WHITE);
         //DrawText(str_tetris_scored, 32, 440, 20, WHITE);
         //DrawText(str_speed, 32, 480, 20, WHITE);
@@ -753,7 +761,7 @@ void MainDeleteEffectTick(const float delta_time)
         if (showRewardBox)
         {
             current_game_loop.begin_play = RogueRewardBegin;
-            current_game_loop.tick = WaitForSpaceTick;
+            //current_game_loop.tick = WaitForSpaceTick;
         }
         else
             current_game_loop.tick = MainTick;
