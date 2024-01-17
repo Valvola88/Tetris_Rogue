@@ -5,8 +5,31 @@ extern int score;
 extern char* str_max_score;
 extern int max_score;
 
+/// TRASH
+AnimationClip testAnimation;
+Texture2D testTexture[4];
+extern Enemy Enemies[];
+
+void animationClipTick(AnimationClip *self, float delta_time);
+// {
+//     self->counter += delta_time;
+//     if (self->counter > 1.f / self->FPS)
+//     {
+//         self->current_frame = (self->current_frame +1) % self->max_frames;
+//         self->counter = 0.f;
+//     }
+// }
+
+Texture2D *AnimationClipGetCurrentTexture(AnimationClip *self);
+// {
+//     return self->frames[self->current_frame];
+// }
+///END TRASH
+
 void MainMenuBeginPlay()
 {
+
+
     current_game_loop.tick = MainMenuTick;
     current_game_loop.draw = MainMenuDraw;
     current_game_loop.post_draw = EmptyDraw;
@@ -15,7 +38,14 @@ void MainMenuBeginPlay()
     
     current_game_loop.begin_play = EmptyBegin;
 
+    InitEnemies();
+
+    current_enemy = Enemies[0];
 }
+
+
+
+
 
 void MainMenuTick(const float delta_time)
 {
@@ -29,17 +59,21 @@ void MainMenuTick(const float delta_time)
             GetRandomValue(-20,20),
             GetRandomValue(-20,20)
             };
-        ShoutStringExtra("HELLO!", 512/2, 512/2,2, 40, YELLOW, v,GetRandomValue(-20,20), EFFECT_COLOR_RANDOM);
+        ShoutStringExtra("HELLO!", 512/2, 512/2,2, 40, YELLOW, v,GetRandomValue(-20,20), EFFECT_RAINBOW);
     }
-
+    if (IsKeyPressed(KEY_S))
+    {
+        printf("Current Action:%s\n", current_enemy.current_action->name);
+        ChangeRandomActionEnemy(&current_enemy);
+    }
     if (IsKeyPressed(KEY_SPACE))
     {
         current_game_loop.begin_play = MainBeginPlay;
     }
 
+    current_enemy.mytexture->tick(current_enemy.mytexture, delta_time);
 
 }
-
 void MainMenuDraw()
 {
     DrawTextCentral("TETRIS", 256, 64, 100, WHITE);
@@ -87,13 +121,18 @@ void MainMenuDraw()
     DrawTextureEx(GfxInputKeys[GFX_KEY_LEFT_SHIFT_RT], position, 0, 3, WHITE);
     DrawTextCentral("Activate", position.x, position.y + 52, 30, WHITE);
 
-
+    DrawTextureEx(*(current_enemy.mytexture->GetCurrentTexture(current_enemy.mytexture)), (Vector2){100,100}, 0, 5, WHITE);
+    
     if (max_score)
     {
         DrawTextCentral((char *)TextFormat("Max Score: %d", max_score), 256,20,40,WHITE);
     }
 
     DrawRectangle(256,256,2,2,BLUE);
+
+
+
+
 }
 
 void EndMenuBeginPlay()

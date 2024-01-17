@@ -23,7 +23,7 @@
 #define TILE_SIZE 16
 #define TETRONIMO_SIZE 4
 #define REWARD_SIZE 48
-
+#define PIECE_QUEUE_SIZE 10
 
 
 
@@ -194,27 +194,31 @@ typedef struct PassiveTrinket{
     Texture2D *textrue;
 
     int utils_value;
-    int (*OnPickup)(int utils);
+    int (*OnPickup)(float utils);
 
 } PassiveTrinket;
 
-typedef struct Enemy{
-    
-    int enemy_type;
+#define MAX_POSSIBLE_FRAME_IN_CLIP 8
+typedef struct AnimationClip
+{
+    Texture2D *frames[MAX_POSSIBLE_FRAME_IN_CLIP];
+    int max_frames;
+    int current_frame;
 
-    int life;
-    int action_timer;
+    float FPS;
+    float counter;
 
-    void(*attack)();
-    Texture2D mytexture;
+    void(*tick)(struct AnimationClip *self, float delta_time);
+    Texture2D* (*GetCurrentTexture)(struct AnimationClip *self);
+} AnimationClip;
 
-} Enemy;
+typedef struct Enemy Enemy;
 
 typedef struct Character{
 
     char* name;
-    int damage;
-    int life;
+    float damage;
+    float life;
     Texture2D mytexture;
 
 } Character;
@@ -237,11 +241,52 @@ typedef struct Clickable{
 
 } Clickable;
 
+typedef struct Action{
+
+    char* name;
+    float weight;
+    int timer;
+    void(*action)();
+
+}Action;
+
+#define MAX_ACTION_ENEMY 5
+typedef struct Enemy{
+    
+    int enemy_type;
+    char* name;
+    
+    float life;
+    float max_life;
+
+    int action_timer;
+    int current_action_timer;
+
+    Action *current_action;
+
+    Action *attacks[5];
+    int attack_number;
+
+    void(*death)();
+
+    AnimationClip *mytexture;
+
+} Enemy;
+
+
+
+
+
+
+
+
+
 extern struct game_loop current_game_loop;
 extern Character main_character;
 extern Enemy current_enemy;
 extern Tetromino mainTetronimo;
 
+extern AnimationClip GfxEnemiesClip[];
 #pragma endregion
 
 #pragma region Functions
@@ -310,7 +355,8 @@ void EffectDraw();
 int DestroyTetronimoEffect(Tetromino *tetronimo);
 void ShoutString(char* string, const int x, const int y, const float duration,const int fontSize, const Color color);
 void ShoutStringExtra(char* string, const int x, const int y, const float duration,const int fontSize, const Color color, const Vector2 velocity, const float rotation, const int colorEffect);
-
+void TetrisShotLinesDestroyed(const int lines);
+int GetFontForContainer(char *string, Vector2 dimensions);
 
 void RogueBegin();
 void RoguePiecePlaced();
@@ -360,8 +406,12 @@ void DrawTetrominoAbsolute(
 void SetTetronimoRotation(Tetromino *tetro, const int rotation);
 int SetTetronimoShape(Tetromino *tetro, const int shape);
 void SpawnNewTetronimo(Tetromino *tetro, const int shape);
-int CreateBlockUnder(int position);
 void PrintTetronimo(Tetromino *t);
+
+
+//ATTACK TYPE
+void CreateBlockUnder(int *position, const int number_of_empty_block);
+void TransformQueuedPieces(const int amount, const int shape);
 
 
 //TRINKET ACTIVE
@@ -371,16 +421,20 @@ int DestroyTetronimo();
 int RogueAttack();
 
 //TRINKET PASSIVE ON PICKUP
-int AddPlayerDamage(int damage);
-int AddPlayerVisibleReward(int _);
-int AddPlayerPotionSlot(int _);
-int AddPlayerVisibleTetromino(int _);
+int AddPlayerDamage(float damage);
+int AddPlayerVisibleReward(float _);
+int AddPlayerPotionSlot(float _);
+int AddPlayerVisibleTetromino(float _);
 
 int TetrisSetTextureClickable(Clickable *click, Texture2D *texture);
 int TetrisDrawClickable(Clickable *self);
 int TetrisIsMouseInside(Clickable *self);
 int TetrisClick(Clickable* self);
 
+
+//ENEMIES AND ATTACK
+void InitEnemies();
+void ChangeRandomActionEnemy(Enemy *e);
 #pragma endregion
 
 #endif

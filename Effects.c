@@ -11,6 +11,7 @@ typedef struct FadingString{
 
     Vector2 myVelocity;
     float myRotation;
+    float mySpacing;
 
     int myColorEffect;
 
@@ -21,8 +22,11 @@ typedef struct FadingString{
 
 Tile tiles[MAX_TILES];
 
-Font fontDefault = { 0 };
+Font fontDefault;
 
+Color rainbow_color;
+float rainbow_color_hue = 0;
+float rainbow_color_update = 5.0f;
 FadingString fadingStrings[MAX_FADING_STRINGS];
 
 //Tile only_tile;
@@ -47,6 +51,28 @@ void TetrisTileDraw(Tile *self)
     DrawRectangleLines(self->x,self->y,TILE_SIZE,TILE_SIZE,BLACK);
 }
 
+void TetrisShotLinesDestroyed(const int lines)
+{
+    switch (lines)
+    {
+    case 1:
+        ShoutStringExtra("Single", 256,256,1,40,RED,(Vector2){0,0},0,EFFECT_NORMAL);
+        break;
+    case 2:
+        ShoutStringExtra("Double", 256,256,1,40,YELLOW,(Vector2){GetRandomValue(-5,5),GetRandomValue(-5,5)},GetRandomValue(-3,3),EFFECT_NORMAL);
+        break;
+    case 3:
+        ShoutStringExtra("Triple", 256,256,1,40,RED,(Vector2){GetRandomValue(-10,10),GetRandomValue(-10,10)},GetRandomValue(-5,5),EFFECT_COLOR_RANDOM);
+        break;
+    case 4:
+        ShoutStringExtra("TETRIS!", 256,256,1,40,RED,(Vector2){GetRandomValue(-20,20),GetRandomValue(-20,20)},GetRandomValue(-7,7),EFFECT_RAINBOW);
+        break;
+    
+    default:
+        break;
+    }
+}
+
 void EffectBegin()
 {
     // only_tile.tick = TileMove;
@@ -63,6 +89,9 @@ void EffectBegin()
     {
         fadingStrings[i].myString = NULL;
     }
+
+    rainbow_color = ColorFromHSV(0,1,1);
+    fontDefault = GetFontDefault();
 }
 
 FadingString *GetFirstFadingString()
@@ -85,12 +114,31 @@ void InitString(FadingString *current_string, char* string, const int x, const i
     current_string->myDuration = duration;
     current_string->myFontSize = fontSize;
     current_string->myColor = color;
+    current_string->mySpacing = fontSize / (float)10;
+
+    Vector2 bounding = MeasureTextEx(
+        fontDefault, 
+        string, 
+        current_string->myFontSize,
+        current_string->mySpacing);
+
+    printf("X:%f/%f",bounding.x,bounding.y);
     current_string->myOrigin = (Vector2){
-        MeasureText(current_string->myString, current_string->myFontSize) / 2,
-        current_string->myFontSize / 2
+        bounding.x / 2,
+        bounding.y /2
         };
 }
 
+int GetFontForContainer(char *string, Vector2 dimensions)
+{
+    int font_size = dimensions.y;
+    while (MeasureTextEx(fontDefault,string, font_size, font_size/ (float)10).x >= dimensions.x && font_size > 0)
+    {
+        font_size--;
+    }
+    
+    return font_size;
+}
 
 void ShoutStringExtra(char* string, const int x, const int y, const float duration,const int fontSize, const Color color, const Vector2 velocity, const float rotation, const int colorEffect)
 {
@@ -126,6 +174,8 @@ void EffectTick(const float delta_time)
     //     return;
 
     // only_tile.tick(&only_tile, delta_time);
+    rainbow_color_hue += rainbow_color_update;
+    rainbow_color = ColorFromHSV(rainbow_color_hue, 1.0,1.0);
     
     for(int i = 0; i < MAX_TILES ;i++)
     {
@@ -172,7 +222,10 @@ void EffectDraw()
     {
         if (fadingStrings[i].myString == NULL)
             continue;
+
         FadingString *current_string = &fadingStrings[i];
+        if (current_string->myColorEffect == EFFECT_RAINBOW)
+            current_string->myColor = rainbow_color;
         
         DrawTextPro(fontDefault,
             current_string->myString,
@@ -180,7 +233,7 @@ void EffectDraw()
             current_string->myOrigin,
             current_string->myRotation,
             current_string->myFontSize,
-            current_string->myFontSize / (float)10,
+            current_string->mySpacing,
             current_string->myColor
             );
     }

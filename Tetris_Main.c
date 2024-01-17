@@ -47,7 +47,7 @@ char str_visible_level[4];
 float speed;
 char str_speed[9];
 
-int nextPieces[VISIBLE_PIECES + 1];
+int piecesQueue[PIECE_QUEUE_SIZE];
 int visible_pieces = 2;
 
 int preview_y;
@@ -193,7 +193,19 @@ void UpdateScore(int add)
     score += add * multiplier;
 }
 
-int CreateBlockUnder(int position)
+int ArrayContains(int *array, const int num, const unsigned int arraysize)
+{
+    for(int i = 0; i < arraysize; i++)
+    {
+        if (array[i] == num)
+        return true;
+    }
+
+    return false;
+}
+
+//ATTACK
+void CreateBlockUnder(int *position, const int number_of_empty_block)
 {
     for(int iy = 0; iy < STAGE_HEIGHT - 2; iy++)
     {
@@ -208,7 +220,7 @@ int CreateBlockUnder(int position)
     for(int ix = 1; ix < STAGE_WIDTH - 1; ix++)
     {
         int offset = (STAGE_HEIGHT - 2) * STAGE_WIDTH + ix;
-        if (ix == position)
+        if (ArrayContains(position, ix, number_of_empty_block))
         {
             stage[offset] = 0;
             continue;
@@ -216,18 +228,17 @@ int CreateBlockUnder(int position)
 
         stage[offset] = 11;
     }
-    return 0;
 }
 
-int AddPlayerVisibleTetromino(int _)
+void TransformQueuedPieces(const int amount, const int shape)
 {
-    visible_pieces += 1;
-    if (visible_pieces >= 5)
-        visible_pieces = 5;
-    
-    return 1; 
+    for(int i = 0; i< amount; i++)
+    {
+        piecesQueue[i] = shape;
+    }
 }
 
+//ACTIVES
 int DestroyTetronimo()
 {
     DestroyTetronimoEffect(&mainTetronimo);
@@ -305,9 +316,19 @@ int MirrorMainTetronimo()
     return 0;
 }
 
+//PASSIVES
+int AddPlayerVisibleTetromino(float _)
+{
+    visible_pieces += 1;
+    if (visible_pieces >= 5)
+        visible_pieces = 5;
+    
+    return 1; 
+}
+
+
+
 #pragma endregion
-
-
 
 #pragma region Main
 void MainBeginPlay()
@@ -328,7 +349,7 @@ void MainBeginPlay()
 
     SetRandomSeed(unixTime);
 
-    SpawnNewTetronimo(&mainTetronimo, GetRandomValue(0,6));
+    SpawnNewTetronimo(&mainTetronimo, GetRandomValue(0,TETRONIMO_I));
 
     holdTetrominoType = -1;
     alreadySwappedOnce = 0;
@@ -350,7 +371,7 @@ void MainBeginPlay()
 
     for(int i = 0; i <= VISIBLE_PIECES;i++)
     {
-        nextPieces[i] =GetRandomValue(0,6);
+        piecesQueue[i] =GetRandomValue(0,TETRONIMO_I);
     }
 
     memcpy(stage, reset_stage, STAGE_DIMENSION * 4);
@@ -370,6 +391,7 @@ void MainBeginPlay()
     //PrintTetronimo(&mainTetronimo);
 }
 
+
 void MainTick(const float delta_time)
 {
 
@@ -385,24 +407,24 @@ void MainTick(const float delta_time)
                 holdTetrominoType = mainTetronimo.shape;
                 // SetRandomSeed(unixTime);
 
-                SetTetronimoShape(&mainTetronimo, nextPieces[0]);
+                SetTetronimoShape(&mainTetronimo, piecesQueue[0]);
 
-                for(int i = 1; i<6;i++)
+                for(int i = 1; i < PIECE_QUEUE_SIZE ;i++)
                 {
-                    nextPieces[i-1] = nextPieces[i];
+                    piecesQueue[i-1] = piecesQueue[i];
                 }
 
-                nextPieces[5] = GetRandomValue(0,6);
+                piecesQueue[PIECE_QUEUE_SIZE - 1] = GetRandomValue(0,TETRONIMO_I);
             }
 
             else
             {
-                for(int i = 5; i>0;i--)
+                for(int i = PIECE_QUEUE_SIZE - 1; i>0;i--)
                 {
-                    nextPieces[i] = nextPieces[i-1];
+                    piecesQueue[i] = piecesQueue[i-1];
                 }
 
-                nextPieces[0] = mainTetronimo.shape;
+                piecesQueue[0] = mainTetronimo.shape;
 
                 SetTetronimoShape(&mainTetronimo, holdTetrominoType);
 
@@ -565,6 +587,7 @@ void MainTick(const float delta_time)
             //Dont reset multiplier
             resetMultiplier = 0;
 
+            TetrisShotLinesDestroyed(current_line_deleted);
             lines_deleted += current_line_deleted;
 
             //tetris = 4 Lines
@@ -588,6 +611,8 @@ void MainTick(const float delta_time)
 
                 multiplier += .5f;
             }
+
+
 
             if (multiplier > 9.9f)
                 multiplier = 9.9f;
@@ -619,11 +644,11 @@ void MainTick(const float delta_time)
 
         alreadySwappedOnce = 0;
         
-        SpawnNewTetronimo(&mainTetronimo, nextPieces[0]);
+        SpawnNewTetronimo(&mainTetronimo, piecesQueue[0]);
 
-        for(int i = 1; i<6;i++)
+        for(int i = 1; i < PIECE_QUEUE_SIZE;i++)
         {
-            nextPieces[i-1] = nextPieces[i];
+            piecesQueue[i-1] = piecesQueue[i];
         }
         
         if (CheckRotateCollision(
@@ -643,7 +668,7 @@ void MainTick(const float delta_time)
             }
 
         
-        nextPieces[5] = GetRandomValue(0,6);
+        piecesQueue[PIECE_QUEUE_SIZE - 1] = GetRandomValue(0,TETRONIMO_I);
 
         if(resetMultiplier)
             multiplier = 1.0f;
@@ -712,7 +737,7 @@ void MainDraw()
         DrawTextureEx(GfxInputKeys[GFX_KEY_SPACE], dummyVector, 0, 2, c);
 
         //NEXT PIECE
-        DrawTetrominoContainer(392, 144, nextPieces[0], "NEXT");
+        DrawTetrominoContainer(392, 144, piecesQueue[0], "NEXT");
 
         //Next Pieces
         for(int i = 1; i < visible_pieces; i++)
@@ -720,22 +745,18 @@ void MainDraw()
             DrawTetrominoOnWhiteCentered(
             400,
             216 + 56 * (i - 1),
-            nextPieces[i]);
+            piecesQueue[i]);
         }
 
         #pragma endregion
 
         //TEXT and Test Text
-        //FormatScore(score_array, score);
+        //FormatScore(score_array, score);    
+        DrawRectangle(370,440,124,64,WHITE);
+        DrawRectangleLines(370,440,124,64,BLACK);
 
-        DrawText("Score:", 116, 15, 20, WHITE);
-        DrawText(str_score, 116, 35, 20, WHITE);
-        //DrawText(TextFormat("Level: %i", visible_level), 16, 300, 20, WHITE);
-        //DrawText(str_visible_level, 16 + MeasureText("Level: ",20), 300, 20, WHITE);
-        //DrawText(TextFormat("Multiplier: %s", real_str_multiplier), 16 , 340, 20, WHITE);
-        //DrawText(str_lines_deleted, 32, 400, 20, WHITE);
-        //DrawText(str_tetris_scored, 32, 440, 20, WHITE);
-        //DrawText(str_speed, 32, 480, 20, WHITE);
+        DrawText("Score:", 375, 445, 20, BLACK);
+        DrawText(str_score, 375, 465, 20, BLACK);
 
     RogueDraw();
 }

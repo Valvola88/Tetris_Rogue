@@ -24,22 +24,23 @@ int visible_rewards_number = 3;
 
 extern Reward REWARDS[];
 extern Texture2D Potions[];
+extern AnimationClip GfxEnemiesClip[];
 extern ActiveTrinket TemplateActiveTrinkets[];
 extern PassiveTrinket TemplatePassiveTrinkets[];
-extern int EnemiesHealth[];
-extern int EnemiesTimer[];
+extern Enemy Enemies[];
 
 extern int showRewardBox;
 
+Vector2 center_white_screen = {256,35};
 int green_rect;
 
-int AddPlayerDamage(int damage)
+int AddPlayerDamage(float damage)
 {
     main_character.damage += damage;
     return 1; 
 }
 
-int AddPlayerPotionSlot(int _)
+int AddPlayerPotionSlot(float _)
 {
     visible_potions_slot += 1;
     if (visible_rewards_number >= 5)
@@ -47,7 +48,7 @@ int AddPlayerPotionSlot(int _)
     return 1; 
 }
 
-int AddPlayerVisibleReward(int _)
+int AddPlayerVisibleReward(float _)
 {
     visible_rewards_number += 1;
     if (visible_rewards_number >= 5)
@@ -57,18 +58,20 @@ int AddPlayerVisibleReward(int _)
 
 void SetEnemy(int enemy_type)
 {
-    current_enemy.enemy_type = enemy_type;
+    current_enemy = Enemies[0];
+    // current_enemy.enemy_type = enemy_type;
 
-    main_character.damage = 1;
-
-    current_enemy.life = EnemiesHealth[enemy_type];
-    current_enemy.action_timer = EnemiesTimer[enemy_type];
+    // current_enemy.life = 4.f;
+    // current_enemy.max_life = 4.f;
+    // current_enemy.action_timer = EnemiesTimer[enemy_type];
+    // current_enemy.mytexture = &GfxEnemiesClip[0];
+    // green_rect = 100;
 }
 
 void RogueBegin()
 {
+    main_character.damage = 1;
     TetrisLoadTexture(&(main_character.mytexture), "resources/texture/character.png", 2);
-    TetrisLoadTexture(&(current_enemy.mytexture), "resources/texture/enemy.png", 2);
 
     for(int i = 0; i < 100; i++)
     {
@@ -78,6 +81,8 @@ void RogueBegin()
     trinket_in_inventory = 0;
     green_rect = 100;
     SetEnemy(ENEMY_SIMPLE);
+
+    current_active_trinket.name = NULL;
 }
 
 void UsePotion(int potion_number)
@@ -106,15 +111,24 @@ int RogueAttack()
 {
 
     current_enemy.life -= main_character.damage;
-    float percent = ((float)(current_enemy.life) / (float)(EnemiesHealth[current_enemy.enemy_type]));
+    float percent = (current_enemy.life / current_enemy.max_life);
     green_rect = 100 * percent;
 
     if (current_enemy.life <= 0)
     {
         showRewardBox = 1;
+        SetEnemy(0);
     }
 
     return 1;
+}
+
+void EnemyAttack()
+{
+    int font_size = GetFontForContainer(current_enemy.current_action->name,(Vector2){180,40});
+    ShoutString(current_enemy.current_action->name, center_white_screen.x,center_white_screen.y,2,font_size,BROWN);
+    current_enemy.current_action->action();
+    ChangeRandomActionEnemy(&current_enemy);
 }
 
 void RoguePiecePlaced()
@@ -122,10 +136,14 @@ void RoguePiecePlaced()
     current_enemy.action_timer--;
 
     if (current_enemy.action_timer == 0)
-    {   
-        CreateBlockUnder(GetRandomValue(1,11));
-
-        current_enemy.action_timer = 5;
+    {  
+        EnemyAttack();
+        //int tArray[] = {2, 4};
+        //CreateBlockUnder(tArray, 2);
+        // TransformQueuedPieces(5, TETRONIMO_SMALL_O);
+        // int font_size = GetFontForContainer("SMALL O ATTACK",(Vector2){180,40});
+        // ShoutString("SMALL O ATTACK", center_white_screen.x,center_white_screen.y,2,font_size,BROWN);
+        // current_enemy.action_timer = 5;
     }
 }
 
@@ -176,6 +194,8 @@ void RogueInputTick(const float delta_time)
         if(current_active_trinket.Activate())
             current_active_trinket.current_charge = 0;
     }
+
+    current_enemy.mytexture->tick(current_enemy.mytexture, delta_time);
 }
 
 void RogueDraw()
@@ -228,7 +248,7 @@ void RogueDraw()
     {
         DrawTextCentral(current_active_trinket.name, 48 +32, 230 + 3, 10, BLACK);
 
-        DrawTextureEx(*current_active_trinket.textrue, (Vector2){56,250}, 0, 2, WHITE);
+        DrawTextureEx(*current_active_trinket.textrue, (Vector2){56,250}, 0, 2, (current_active_trinket.charge == current_active_trinket.current_charge) ? WHITE : GRAY);
 
         int fract = 48 / current_active_trinket.charge;
 
@@ -243,7 +263,7 @@ void RogueDraw()
         }
 
         Color c = (current_active_trinket.charge == current_active_trinket.current_charge) ? BLACK : GRAY;
-        DrawTextureEx(GfxInputKeys[GFX_KEY_SHIFT], (Vector2){12,259}, 0, 2, GRAY);
+        DrawTextureEx(GfxInputKeys[GFX_KEY_SHIFT], (Vector2){12,259}, 0, 2, c);
     }
 
     //DrawRectangle(18,336,124,72,WHITE);
@@ -271,13 +291,24 @@ void RogueDraw()
     }
 
     DrawTexture(main_character.mytexture, 16,16, WHITE);
-    DrawTexture(current_enemy.mytexture, 400,16, WHITE);
+    
+    //ENEMY
+    DrawRectangle(372,6,120,120,SKYBLUE);
+    DrawRectangleLines(372,6,120,120,BLACK);
 
-    DrawText(TextFormat("%i", current_enemy.action_timer), 360,24,32,WHITE);
+    DrawRectangle(166,15,180,40,WHITE);
+    DrawRectangleLines(166,15,180,40,BLACK);
+
+    DrawRectangle(347,19,24,32,WHITE);
+    DrawRectangleLines(347,19,24,32,BLACK);
+
+    DrawTextureEx(*(current_enemy.mytexture->GetCurrentTexture((current_enemy.mytexture))), (Vector2){384,18},0,6,WHITE);
+
+    DrawText(TextFormat("%i", current_enemy.action_timer), 351, 22,32,BLACK);
     //DrawText(TextFormat("%f", current_enemy.life), 380, 78,16,WHITE);
 
-    DrawRectangle(372,68,104,14,BLACK);
-    DrawRectangle(374,70,green_rect,10,GREEN);
+    DrawRectangle(380,108,104,14,BLACK);
+    DrawRectangle(382,110,green_rect,10,green_rect >= 50 ? GREEN : green_rect >= 20 ? YELLOW : RED);
 }
 
 void DrawTooltip(char* text)
@@ -410,7 +441,7 @@ void SetRandomRewards(int amount)
     }
     SetReward(
     0,
-    17,
+    14,
     100,
     150
     );

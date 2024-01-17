@@ -1,1 +1,1 @@
-clang.exe -o Tetris.exe Tetris_Main.c .\CheckCollision.c .\Music.c def.c Menu.c Effects.c Image.c Rogue.c Draw.c Clickable.c -l raylibdll
+clang.exe -o Tetris.exe Tetris_Main.c .\CheckCollision.c .\Music.c def.c Menu.c Effects.c Image.c Draw.c Clickable.c Enemy.c Rogue.c -l raylibdll
