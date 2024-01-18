@@ -419,6 +419,7 @@ int MirrorMainTetronimo();
 int FallTetronimo();
 int DestroyTetronimo();
 int RogueAttack();
+int DealNonLethalDamage();
 
 //TRINKET PASSIVE ON PICKUP
 int AddPlayerDamage(float damage);
@@ -435,6 +436,7 @@ int TetrisClick(Clickable* self);
 //ENEMIES AND ATTACK
 void InitEnemies();
 void ChangeRandomActionEnemy(Enemy *e);
+void HealEnemy(float damage);
 #pragma endregion
 
 #endif

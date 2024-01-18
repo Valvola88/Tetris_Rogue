@@ -33,6 +33,7 @@ extern int showRewardBox;
 
 Vector2 center_white_screen = {256,35};
 int green_rect;
+int overkill;
 
 int AddPlayerDamage(float damage)
 {
@@ -56,21 +57,38 @@ int AddPlayerVisibleReward(float _)
     return 1; 
 }
 
+int DealNonLethalDamage()
+{
+    current_enemy.life -= main_character.damage;
+    if (current_enemy.life <= .1f)
+        current_enemy.life = .1f;
+
+    float percent = (current_enemy.life / current_enemy.max_life);
+    green_rect = 100 * percent;
+
+    return 1;
+}
+
+void HealEnemy(float damage)
+{
+    current_enemy.life += damage;
+    if (current_enemy.life >= current_enemy.max_life)
+        current_enemy.life = current_enemy.max_life;
+
+    float percent = (current_enemy.life / current_enemy.max_life);
+    green_rect = 100 * percent;
+}
+
 void SetEnemy(int enemy_type)
 {
-    current_enemy = Enemies[0];
-    // current_enemy.enemy_type = enemy_type;
-
-    // current_enemy.life = 4.f;
-    // current_enemy.max_life = 4.f;
-    // current_enemy.action_timer = EnemiesTimer[enemy_type];
-    // current_enemy.mytexture = &GfxEnemiesClip[0];
-    // green_rect = 100;
+    current_enemy = Enemies[enemy_type];
+    green_rect = 100;
 }
 
 void RogueBegin()
 {
     main_character.damage = 1;
+    overkill = 0;
     TetrisLoadTexture(&(main_character.mytexture), "resources/texture/character.png", 2);
 
     for(int i = 0; i < 100; i++)
@@ -80,7 +98,7 @@ void RogueBegin()
 
     trinket_in_inventory = 0;
     green_rect = 100;
-    SetEnemy(ENEMY_SIMPLE);
+    SetEnemy(3);
 
     current_active_trinket.name = NULL;
 }
@@ -117,6 +135,7 @@ int RogueAttack()
     if (current_enemy.life <= 0)
     {
         showRewardBox = 1;
+        overkill = 1;
         SetEnemy(0);
     }
 
@@ -150,7 +169,8 @@ void RoguePiecePlaced()
 void RogueLineScored()
 {
     //printf("Attack");
-    RogueAttack();
+    if (!overkill)
+        RogueAttack();
 
     if (current_active_trinket.current_charge < current_active_trinket.charge)
     {
@@ -455,6 +475,7 @@ void RogueRewardBegin()
     current_game_loop.begin_play = EmptyBegin;
 
     SetRandomRewards(visible_rewards_number);
+    overkill = 0;
 
     // for(int i = 0; i< 3;i++)
     // SetReward(

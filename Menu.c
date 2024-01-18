@@ -11,20 +11,7 @@ Texture2D testTexture[4];
 extern Enemy Enemies[];
 
 void animationClipTick(AnimationClip *self, float delta_time);
-// {
-//     self->counter += delta_time;
-//     if (self->counter > 1.f / self->FPS)
-//     {
-//         self->current_frame = (self->current_frame +1) % self->max_frames;
-//         self->counter = 0.f;
-//     }
-// }
-
 Texture2D *AnimationClipGetCurrentTexture(AnimationClip *self);
-// {
-//     return self->frames[self->current_frame];
-// }
-///END TRASH
 
 void MainMenuBeginPlay()
 {
@@ -121,7 +108,7 @@ void MainMenuDraw()
     DrawTextureEx(GfxInputKeys[GFX_KEY_LEFT_SHIFT_RT], position, 0, 3, WHITE);
     DrawTextCentral("Activate", position.x, position.y + 52, 30, WHITE);
 
-    DrawTextureEx(*(current_enemy.mytexture->GetCurrentTexture(current_enemy.mytexture)), (Vector2){100,100}, 0, 5, WHITE);
+    //DrawTextureEx(*(current_enemy.mytexture->GetCurrentTexture(current_enemy.mytexture)), (Vector2){100,100}, 0, 5, WHITE);
     
     if (max_score)
     {

@@ -457,7 +457,7 @@ const ActiveTrinket TemplateActiveTrinkets[]=
 {
     {"FALLER", 4, 4, &GfxActiveTrinket[0], FallTetronimo},
     {"MIRROR", 2, 2, &GfxActiveTrinket[1], MirrorMainTetronimo},
-    {"SHURIKEN", 6, 6, &GfxActiveTrinket[2], RogueAttack},
+    {"SHURIKEN", 6, 6, &GfxActiveTrinket[2], DealNonLethalDamage},
     {"TRASH", 3, 3, &GfxActiveTrinket[3], DestroyTetronimo},
 };
 
@@ -472,7 +472,7 @@ const ActiveTrinket TemplateActiveTrinkets[]=
 // } PassiveTrinket;
 const PassiveTrinket TemplatePassiveTrinkets[] =
 {
-    {"TOUGH GLOVE", &GfxPassiveTrinket[0], 5, AddPlayerDamage},
+    {"TOUGH GLOVE", &GfxPassiveTrinket[0], 1, AddPlayerDamage},
     {"GLASSES", &GfxPassiveTrinket[1], 0, AddPlayerVisibleTetromino},
     {"TREASURE", &GfxPassiveTrinket[2], 0, AddPlayerVisibleReward},
     {"FLASK", &GfxPassiveTrinket[3], 0, AddPlayerPotionSlot},
