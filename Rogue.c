@@ -98,7 +98,7 @@ void RogueBegin()
 
     trinket_in_inventory = 0;
     green_rect = 100;
-    SetEnemy(3);
+    SetEnemy(0);
 
     current_active_trinket.name = NULL;
 }
@@ -136,7 +136,7 @@ int RogueAttack()
     {
         showRewardBox = 1;
         overkill = 1;
-        SetEnemy(0);
+        SetEnemy(GetRandomValue(0,3));
     }
 
     return 1;
@@ -310,7 +310,7 @@ void RogueDraw()
         DrawTexture(GfxPassiveTrinket[15], 110, 376, WHITE);
     }
 
-    DrawTexture(main_character.mytexture, 16,16, WHITE);
+    //DrawTexture(main_character.mytexture, 16,16, WHITE);
     
     //ENEMY
     DrawRectangle(372,6,120,120,SKYBLUE);
@@ -352,7 +352,6 @@ void RogueRewardDraw()
         TetrisDrawClickable(&rewards_buttons[i]);  
     }
 }
-
 
 int AddPotion(int potion_number){
 
@@ -459,12 +458,12 @@ void SetRandomRewards(int amount)
         );
 
     }
-    SetReward(
-    0,
-    14,
-    100,
-    150
-    );
+    // SetReward(
+    // 0,
+    // 14,
+    // 100,
+    // 150
+    // );
 }
 
 void RogueRewardBegin()
